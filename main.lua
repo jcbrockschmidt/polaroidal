@@ -1,18 +1,29 @@
 function love.load()
    require "polar"
+   require "playerGraph"
+
+   love.graphics.setBackgroundColor(255, 255, 255)
+
    newGraph = polar.new(
       love.graphics.getWidth() / 2,
       love.graphics.getHeight() / 2,
       0,
-      100,
-      0, 1, 5
+      50,
+      0, 3, 5
    )
-
-   love.graphics.setBackgroundColor(255, 255, 255)
+   playerGraph.load()
 end
 
 function love.update(dt)
-   return --> place-holder; temporary
+   playerGraph.update(dt)
+end
+
+function love.keypressed(key)
+   playerGraph.keypressed(key)
+end
+
+function love.keyreleased(key)
+   playerGraph.keyreleased(key)
 end
 
 function love.draw()
@@ -21,7 +32,10 @@ function love.draw()
       "line",
       love.graphics.getWidth() / 2,
       love.graphics.getHeight() / 2,
-      5
+      10
    )
-   newGraph:draw()
+   love.graphics.setColor(100, 100, 100)
+   newGraph:draw(3)
+
+   playerGraph.draw()
 end
