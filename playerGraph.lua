@@ -1,4 +1,5 @@
 require "polar"
+require "matchGraph"
 
 playerGraph = {}
 
@@ -7,14 +8,14 @@ playerGraph.graph = polar.new(
       love.graphics.getHeight() / 2,
       0,
       50,
-      0, 3, 0
+      0, 3, 1
 )
 
 playerGraph.keyMaps = {
    incr_a = "i",
    decr_a = "k",
-   incr_b = "m",
-   decr_b = ".",
+   incr_b = "l",
+   decr_b = "j",
    incr_n = "u",
    decr_n = "o"
 }
@@ -27,19 +28,19 @@ playerGraph.speeds = {}
 
 playerGraph.maxSpeeds = {
    a = 6,
-   b = 3,
+   b = 6,
    n = 3
 }
 
 playerGraph.accels = {
    a = 10,
-   b = 2,
+   b = 10,
    n = 2
 }
 
 playerGraph.fricts = {
    a = -3,
-   b = -1,
+   b = -3,
    n = -1
 }
 
@@ -171,7 +172,7 @@ function playerGraph.draw()
    graph:draw(5)
    
    --DEBUGGING
-   love.graphics.setColor(0, 0, 255, 255)
+   love.graphics.setColor(0, 200, 0, 255)
    love.graphics.print(
       "a:\t" .. graph:get_a()
 	 .. "\nb:\t" .. graph:get_b()
