@@ -1,6 +1,7 @@
 function love.load()
    require "polar"
    require "playerGraph"
+   require "matchGraph"
 
    love.graphics.setBackgroundColor(255, 255, 255)
 
@@ -16,10 +17,12 @@ function love.load()
       0, 3, 0
    )
    playerGraph.load()
+   matchGraph.load()
 end
 
 function love.update(dt)
    playerGraph.update(dt)
+   matchGraph.update(dt)
 end
 
 function love.keypressed(key)
@@ -41,5 +44,6 @@ function love.draw()
    love.graphics.setColor(100, 100, 100)
    newGraph:draw(3)
 
+   matchGraph.draw()
    playerGraph.draw()
 end
