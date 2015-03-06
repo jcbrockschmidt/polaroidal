@@ -9,7 +9,7 @@ function love.load()
       love.graphics.getHeight() / 2,
       0,
       50,
-      0, 3, 5
+      0, 3, 0
    )
    playerGraph.load()
 end

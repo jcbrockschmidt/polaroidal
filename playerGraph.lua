@@ -7,7 +7,7 @@ playerGraph.graph = polar.new(
       love.graphics.getHeight() / 2,
       0,
       50,
-      2, 3, 10
+      0, 3, 0
 )
 
 playerGraph.keyMaps = {
@@ -15,10 +15,8 @@ playerGraph.keyMaps = {
    decr_a = "k",
    incr_b = "m",
    decr_b = ".",
-   incr_n = "u",
-   decr_n = "o",
-   incr_rads = "l",
-   decr_rads = "j"
+   incr_n = "o",
+   decr_n = "u"
 }
 
 playerGraph.doIncr = {}
@@ -28,24 +26,21 @@ playerGraph.doDecr = {}
 playerGraph.speeds = {}
 
 playerGraph.maxSpeeds = {
-   a = 3,
+   a = 6,
    b = 3,
-   n = 3,
-   rads = 3
+   n = 3
 }
 
 playerGraph.accels = {
-   a = 2,
+   a = 10,
    b = 2,
-   n = 2,
-   rads = 2
+   n = 2
 }
 
 playerGraph.fricts = {
-   a = -1,
+   a = -3,
    b = -1,
-   n = -1,
-   rads = -1
+   n = -1
 }
 
 local graph = playerGraph.graph
@@ -92,16 +87,9 @@ function playerGraph.update(dt)
       speeds.n = math.max(-maxSpeeds.n, speeds.n - accels.n * dt)
    end
 
-   if doIncr.rads then
-      speeds.rads = math.min(maxSpeeds.rads, speeds.rads + accels.rads * dt)
-   elseif doDecr.rads then
-      speeds.rads = math.max(-maxSpeeds.rads, speeds.rads - accels.rads * dt)
-   end
-
    graph:set_a(graph:get_a() + speeds.a * dt)
    graph:set_b(graph:get_b() + speeds.b * dt)
    graph:set_n(graph:get_n() + speeds.n * dt)
-   graph:set_rads(graph:get_rads() + speeds.rads * dt)
 
    graph:calcPoints()
 end
@@ -127,13 +115,6 @@ function playerGraph.keypressed(key)
    elseif key == km.decr_n then
       doDecr.n = true
       doIncr.n = false
-
-   elseif key == km.incr_rads then
-      doIncr.rads = true
-      doDecr.rads = false
-   elseif key == km.decr_rads then
-      doDecr.rads = true
-      doIncr.rads = false
    end
 end
 
@@ -181,21 +162,6 @@ function playerGraph.keyreleased(key)
 	 doIncr.n = true
       else
 	 doIncr.n = false
-      end
-
-   elseif key == km.incr_rads then
-      doIncr.rads = false
-      if love.keyboard.isDown(km.decr_rads) then
-	 doDecr.rads = true
-      else
-	 doDecr.rads = false
-      end
-   elseif key == km.decr_rads then
-      doDecr.rads = false
-      if love.keyboard.isDown(km.incr_rads) then
-	 doIncr.rads = true
-      else
-	 doIncr.rads = false
       end
    end
 end
