@@ -15,8 +15,8 @@ playerGraph.keyMaps = {
    decr_a = "k",
    incr_b = "m",
    decr_b = ".",
-   incr_n = "o",
-   decr_n = "u"
+   incr_n = "u",
+   decr_n = "o"
 }
 
 playerGraph.doIncr = {}
@@ -53,7 +53,7 @@ local accels = playerGraph.accels
 local fricts = playerGraph.fricts
 
 function playerGraph.load()
-   for _, k in pairs({"a", "b", "n", "rads"}) do
+   for _, k in pairs({"a", "b", "n"}) do
       doIncr[k] = false
       doDecr[k] = false
       speeds[k] = 0
@@ -169,4 +169,14 @@ end
 function playerGraph.draw()
    love.graphics.setColor(0, 0, 127, 255)
    graph:draw(5)
+   
+   --DEBUGGING
+   love.graphics.setColor(0, 0, 255, 255)
+   love.graphics.print(
+      "a:\t" .. graph:get_a()
+	 .. "\nb:\t" .. graph:get_b()
+	 .. "\nn:\t" .. graph:get_n(),
+      5, 5
+   )
+   --EOF DEBUG
 end

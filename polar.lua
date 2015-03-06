@@ -1,6 +1,5 @@
 local incr = math.pi / 128
 local maxPoints = math.floor(2 * math.pi / incr)
-local twoPi = 2 * math.pi
 
 local graph = {
    --- Calculates cartesian points for a given polarized graph object.
@@ -56,8 +55,7 @@ local graph = {
    end,
 
    set_rads = function(self, rads)
-      -- Ensure radians are within domain [0, 2*pi).
-      self.rads = rads - math.floor(rads / twoPi) * twoPi
+      self.rads = rads
    end,
 
    set_scale = function(self, scale)

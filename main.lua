@@ -4,6 +4,10 @@ function love.load()
 
    love.graphics.setBackgroundColor(255, 255, 255)
 
+   --DEGUGGING
+   love.graphics.setFont(love.graphics.newFont(18))
+   --EOF DEBUG
+
    newGraph = polar.new(
       love.graphics.getWidth() / 2,
       love.graphics.getHeight() / 2,
