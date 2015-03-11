@@ -62,6 +62,18 @@ playerGraph.snapSpeedFuzz = {
    n = 0.3
 }
 
+playerGraph.maxLimits = {
+   a = 7,
+   b = 6,
+   n = 10
+}
+
+playerGraph.minLimits = {
+   a = -7,
+   b = -6,
+   n = -10
+}
+
 local graph = playerGraph.graph
 local km = playerGraph.keyMaps
 local doIncr = playerGraph.doIncr
@@ -75,6 +87,8 @@ local snapFuzz = playerGraph.snapFuzz
 local snapSpeedFuzz = playerGraph.snapSpeedFuzz
 local snapFuzz = playerGraph.snapFuzz
 local snapSpeedFuzz = playerGraph.snapSpeedFuzz
+local maxLimits = playerGraph.maxLimits
+local minLimits = playerGraph.minLimits
 
 function playerGraph.load()
    for _, k in pairs({"a", "b", "n"}) do
@@ -90,6 +104,28 @@ function playerGraph.getSnap(k)
    print("SNAP,",k,snap[k]);
 end
 
+function playerGraph.setIncr(k, bool)
+   doIncr[k] = bool
+   if bool then
+      doDecr[k] = false
+   elseif love.keyboard.isDown(km["decr_"..k]) then
+      doDecr[k] = true
+   else
+      playerGraph.getSnap(k)
+   end
+end
+
+function playerGraph.setDecr(k, bool)
+   doDecr[k] = bool
+   if bool then
+      doIncr[k] = false
+   elseif love.keyboard.isDown(km["incr_"..k]) then
+      doIncr[k] = true
+   else
+      playerGraph.getSnap(k)
+   end
+end
+
 function playerGraph.update(dt)
    local polarPars = {
       a = graph:get_a(),
@@ -98,6 +134,17 @@ function playerGraph.update(dt)
    }
 
    for k, v in pairs(polarPars) do
+      if doIncr[k] then
+	 if v > maxLimits[k] then
+	    playerGraph.setIncr(k, false)
+	 end
+
+      elseif doDecr[k] then
+	 if v < minLimits[k] then
+	    playerGraph.setDecr(k, false)
+	 end
+      end
+
       if doIncr[k] then
 	 speeds[k] = math.max(0, speeds[k] + fricts[k] * dt)
 	 speeds[k] = math.min(maxSpeeds[k], speeds[k] + accels[k] * dt)
@@ -129,79 +176,25 @@ function playerGraph.update(dt)
 end
 
 function playerGraph.keypressed(key)
-   if key == km.incr_a then
-      doIncr.a = true
-      doDecr.a = false
-   elseif key == km.decr_a then
-      doDecr.a = true
-      doIncr.a = false
-
-   elseif key == km.incr_b then
-      doIncr.b = true
-      doDecr.b = false
-   elseif key == km.decr_b then
-      doDecr.b = true
-      doIncr.b = false
-
-   elseif key == km.incr_n then
-      doIncr.n = true
-      doDecr.n = false
-   elseif key == km.decr_n then
-      doDecr.n = true
-      doIncr.n = false
+   for _, k in ipairs({"a", "b", "n"}) do
+      if key == km["incr_"..k] then
+	 playerGraph.setIncr(k, true)
+	 return
+      elseif key == km["decr_"..k] then
+	 playerGraph.setDecr(k, true)
+	 return
+      end
    end
 end
 
 function playerGraph.keyreleased(key)
-   if key == km.incr_a then
-      doIncr.a = false
-      if love.keyboard.isDown(km.decr_a) then
-	 doDecr.a = true
-      else
-	 doDecr.a = false
-	 playerGraph.getSnap("a")
-      end
-   elseif key == km.decr_a then
-      doDecr.a = false
-      if love.keyboard.isDown(km.incr_a) then
-	 doIncr.a = true
-      else
-	 doIncr.a = false
-	 playerGraph.getSnap("a")
-      end
-
-   elseif key == km.incr_b then
-      doIncr.b = false
-      if love.keyboard.isDown(km.decr_b) then
-	 doDecr.b = true
-      else
-	 doDecr.b = false
-	 playerGraph.getSnap("b")
-      end
-   elseif key == km.decr_b then
-      doDecr.b = false
-      if love.keyboard.isDown(km.incr_b) then
-	 doIncr.b = true
-      else
-	 doIncr.b = false
-	 playerGraph.getSnap("b")
-      end
-
-   elseif key == km.incr_n then
-      doIncr.n = false
-      if love.keyboard.isDown(km.decr_n) then
-	 doDecr.n = true
-      else
-	 doDecr.n = false
-	 playerGraph.getSnap("n")
-      end
-   elseif key == km.decr_n then
-      doDecr.n = false
-      if love.keyboard.isDown(km.incr_n) then
-	 doIncr.n = true
-      else
-	 doIncr.n = false
-	 playerGraph.getSnap("n")
+   for _, k in ipairs({"a", "b", "n"}) do
+      if key == km["incr_"..k] then
+	 playerGraph.setIncr(k, false)
+	 return
+      elseif key == km["decr_"..k] then
+	 playerGraph.setDecr(k, false)
+	 return
       end
    end
 end
