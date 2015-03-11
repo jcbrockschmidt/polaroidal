@@ -101,7 +101,6 @@ end
 
 function playerGraph.getSnap(k)
    snap[k] = math.floor(graph["get_"..k](graph) + 0.5)
-   print("SNAP,",k,snap[k]);
 end
 
 function playerGraph.setIncr(k, bool)

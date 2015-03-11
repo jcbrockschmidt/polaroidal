@@ -7,7 +7,7 @@ matchGraph.graph = polar.new(
       love.graphics.getWidth() / 2,
       love.graphics.getHeight() / 2,
       0, 50,
-      4, 1, 5
+      2, -4, 1
 )
 
 -- When checking if this and the player's polar graph's match, this is how
@@ -35,23 +35,58 @@ function matchGraph.graphsMatch()
       return false
    end
 
-   diff = math.abs(playerGraph.graph:get_b() - graph:get_b())
-   if diff > fuzz.b then
-      return false
-   end
+   local p_b, p_n = playerGraph.graph:get_b(), playerGraph.graph:get_n()
+   local m_b, m_n = graph:get_b(), graph:get_n()
 
-   diff = math.abs(playerGraph.graph:get_n() - graph:get_n())
-   if diff > fuzz.n then
-      return false
+   -- Account for case in which one graph's b AND n are negative value of the
+   -- other's. If this is the case, the graph's will still visually align
+   -- (assuming the a value is also aligned).
+   if ((p_b > 0 and m_b < 0) or (p_b < 0 and m_b > 0)) or
+   ((p_n > 0 and m_n < 0) or (p_n < 0 and m_n > 0)) then
+      if math.abs(math.abs(p_b) - math.abs(m_b)) > fuzz.b then
+	 return false
+      end
+
+      if math.abs(math.abs(p_n) - math.abs(m_n)) > fuzz.n then
+	 return false
+      end
+
+   else
+      if math.abs(p_b - m_b) > fuzz.b then
+	 return false
+      end
+
+      if math.abs(p_n - m_n) > fuzz.n then
+	 return false
+      end
    end
 
    return true
 end
 
+function matchGraph.shuffleGraph()
+   local polarPars = {
+      a = graph:get_a(),
+      b = graph:get_b(),
+      n = graph:get_n()
+   }
+
+   for k, v in pairs(polarPars) do
+      local new = math.random(playerGraph.minLimits[k], playerGraph.maxLimits[k] - 1)
+      -- Ensure that new value actually changes.
+      if new > v then
+	 new = new + 1
+      end
+      graph["set_"..k](graph, new)
+   end
+
+   graph:calcPoints()
+end
+
 function matchGraph.update(dt)
-   --DEBUGGING
-   MATCHING = matchGraph.graphsMatch()
-   --EOF DEBUGGING
+   if matchGraph.graphsMatch() then
+      matchGraph.shuffleGraph()
+   end
 end
 
 function matchGraph.draw()
@@ -66,19 +101,5 @@ function matchGraph.draw()
 	 .. "\nn:\t" .. graph:get_n(),
       5, 5
    )
-   
-   if MATCHING then
-      love.graphics.setColor(0, 200, 0, 255)
-      love.graphics.print(
-	 "\n\n\n\n\n\nMATCHING",
-	 5, 5
-      )
-   else
-      love.graphics.setColor(200, 0, 0, 255)
-      love.graphics.print(
-	 "\n\n\n\n\n\nNOT MATCHING",
-	 5, 5
-      )
-   end	 
    --EOF DEBUG
 end
