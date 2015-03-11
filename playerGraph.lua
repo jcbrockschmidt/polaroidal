@@ -14,10 +14,10 @@ playerGraph.graph = polar.new(
 playerGraph.keyMaps = {
    incr_a = "i",
    decr_a = "k",
-   incr_b = "l",
-   decr_b = "j",
-   incr_n = "u",
-   decr_n = "o"
+   incr_b = "u",
+   decr_b = "o",
+   incr_n = "j",
+   decr_n = "l"
 }
 
 playerGraph.doIncr = {}
@@ -27,21 +27,39 @@ playerGraph.doDecr = {}
 playerGraph.speeds = {}
 
 playerGraph.maxSpeeds = {
-   a = 6,
-   b = 6,
-   n = 3
+   a = 12,
+   b = 12,
+   n = 12
 }
 
 playerGraph.accels = {
-   a = 10,
-   b = 10,
-   n = 2
+   a = 24,
+   b = 24,
+   n = 18
 }
 
 playerGraph.fricts = {
-   a = -3,
-   b = -3,
-   n = -1
+   a = -6,
+   b = -6,
+   n = -6
+}
+
+playerGraph.snap = {
+   a = 0,
+   b = 0,
+   n = 0
+}
+
+playerGraph.snapFuzz = {
+   a = 0.1,
+   b = 0.1,
+   n = 0.1,
+}
+
+playerGraph.snapSpeedFuzz = {
+   a = 0.5,
+   b = 0.5,
+   n = 0.3
 }
 
 local graph = playerGraph.graph
@@ -52,45 +70,60 @@ local speeds = playerGraph.speeds
 local maxSpeeds = playerGraph.maxSpeeds
 local accels = playerGraph.accels
 local fricts = playerGraph.fricts
+local snap = playerGraph.snap
+local snapFuzz = playerGraph.snapFuzz
+local snapSpeedFuzz = playerGraph.snapSpeedFuzz
+local snapFuzz = playerGraph.snapFuzz
+local snapSpeedFuzz = playerGraph.snapSpeedFuzz
 
 function playerGraph.load()
    for _, k in pairs({"a", "b", "n"}) do
       doIncr[k] = false
       doDecr[k] = false
       speeds[k] = 0
+      snap[k] = math.floor(graph["get_"..k](graph))
    end
 end
 
+function playerGraph.getSnap(k)
+   snap[k] = math.floor(graph["get_"..k](graph) + 0.5)
+   print("SNAP,",k,snap[k]);
+end
+
 function playerGraph.update(dt)
-   for k, s in pairs(speeds) do
-      if s > 0 then
-	 speeds[k] = math.max(0, s + fricts[k] * dt)
-      elseif s < 0 then
-	 speeds[k] = math.min(0, s - fricts[k] * dt)
+   local polarPars = {
+      a = graph:get_a(),
+      b = graph:get_b(),
+      n = graph:get_n()
+   }
+
+   for k, v in pairs(polarPars) do
+      if doIncr[k] then
+	 speeds[k] = math.max(0, speeds[k] + fricts[k] * dt)
+	 speeds[k] = math.min(maxSpeeds[k], speeds[k] + accels[k] * dt)
+
+      elseif doDecr[k] then
+	 speeds[k] = math.min(0, speeds[k] - fricts[k] * dt)
+	 speeds[k] = math.max(-maxSpeeds[k], speeds[k] - accels[k] * dt)
+
+      elseif math.abs(snap[k] - v) > snapFuzz[k] or
+      math.abs(speeds[k]) > snapSpeedFuzz[k] then
+	 if v > snap[k] then
+	    speeds[k] = math.min(0, speeds[k] - fricts[k] * dt)
+	    speeds[k] = math.max(-maxSpeeds[k], speeds[k] - accels[k] * dt)
+
+	 elseif v < snap[k] then
+	    speeds[k] = math.max(0, speeds[k] + fricts[k] * dt)
+	    speeds[k] = math.min(maxSpeeds[k], speeds[k] + accels[k] * dt)
+	 end
+
+      else
+	 speeds[k] = 0
+	 polarPars[k] = snap[k]
       end
-   end
 
-   if doIncr.a then
-      speeds.a = math.min(maxSpeeds.a, speeds.a + accels.a * dt)
-   elseif doDecr.a then
-      speeds.a = math.max(-maxSpeeds.a, speeds.a - accels.a * dt)
+      graph["set_"..k](graph, polarPars[k] + speeds[k] * dt)
    end
-
-   if doIncr.b then
-      speeds.b = math.min(maxSpeeds.b, speeds.b + accels.b * dt)
-   elseif doDecr.b then
-      speeds.b = math.max(-maxSpeeds.b, speeds.b - accels.b * dt)
-   end
-
-   if doIncr.n then
-      speeds.n = math.min(maxSpeeds.n, speeds.n + accels.n * dt)
-   elseif doDecr.n then
-      speeds.n = math.max(-maxSpeeds.n, speeds.n - accels.n * dt)
-   end
-
-   graph:set_a(graph:get_a() + speeds.a * dt)
-   graph:set_b(graph:get_b() + speeds.b * dt)
-   graph:set_n(graph:get_n() + speeds.n * dt)
 
    graph:calcPoints()
 end
@@ -126,6 +159,7 @@ function playerGraph.keyreleased(key)
 	 doDecr.a = true
       else
 	 doDecr.a = false
+	 playerGraph.getSnap("a")
       end
    elseif key == km.decr_a then
       doDecr.a = false
@@ -133,6 +167,7 @@ function playerGraph.keyreleased(key)
 	 doIncr.a = true
       else
 	 doIncr.a = false
+	 playerGraph.getSnap("a")
       end
 
    elseif key == km.incr_b then
@@ -141,6 +176,7 @@ function playerGraph.keyreleased(key)
 	 doDecr.b = true
       else
 	 doDecr.b = false
+	 playerGraph.getSnap("b")
       end
    elseif key == km.decr_b then
       doDecr.b = false
@@ -148,6 +184,7 @@ function playerGraph.keyreleased(key)
 	 doIncr.b = true
       else
 	 doIncr.b = false
+	 playerGraph.getSnap("b")
       end
 
    elseif key == km.incr_n then
@@ -156,6 +193,7 @@ function playerGraph.keyreleased(key)
 	 doDecr.n = true
       else
 	 doDecr.n = false
+	 playerGraph.getSnap("n")
       end
    elseif key == km.decr_n then
       doDecr.n = false
@@ -163,6 +201,7 @@ function playerGraph.keyreleased(key)
 	 doIncr.n = true
       else
 	 doIncr.n = false
+	 playerGraph.getSnap("n")
       end
    end
 end
