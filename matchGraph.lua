@@ -28,23 +28,21 @@ function matchGraph.load()
 end
 
 function matchGraph.graphsMatch()
-   local plyr = {
-      a = playerGraph.graph:get_a(),
-      b = playerGraph.graph:get_b(),
-      n = playerGraph.graph:get_n()
-   }
-   local match = {
-      a = graph:get_a(),
-      b = graph:get_b(),
-      n = graph:get_n()
-   }
+   local diff = math.abs(
+      math.abs(playerGraph.graph:get_a()) - math.abs(graph:get_a())
+   )
+   if diff > fuzz.a then
+      return false
+   end
 
-   local diff
-   for param, val in pairs(plyr) do
-      diff = math.abs(val - match[param])
-      if diff > fuzz[param] then
-	 return false
-      end
+   diff = math.abs(playerGraph.graph:get_b() - graph:get_b())
+   if diff > fuzz.b then
+      return false
+   end
+
+   diff = math.abs(playerGraph.graph:get_n() - graph:get_n())
+   if diff > fuzz.n then
+      return false
    end
 
    return true
