@@ -8,14 +8,12 @@ local graph = {
    calcPoints = function(self)
       self.points = {}
       local angle, r
-      for p = 1, maxPoints do
+      for p = 1, maxPoints + 1 do
 	 angle = incr * p
 	 r = (self.a + (self.b * math.sin(self.n * (angle + self.rads)))) * self.scale
-	 table.insert(self.points, (r * math.cos(angle)) + self.x)
-	 table.insert(self.points, (r * math.sin(angle)) + self.y)
+	 table.insert(self.points, -(r * math.cos(angle)) + self.x)
+	 table.insert(self.points, -(r * math.sin(angle)) + self.y)
       end
-      table.insert(self.points, self.points[1])
-      table.insert(self.points, self.points[2])
    end,
 
    get_x = function(self)
