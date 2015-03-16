@@ -137,7 +137,6 @@ local graph = {
 
    snapTo = function(self, k, val)
       self.snap[k] = val
-      print("SNAP",k,val)
    end,
 
    cancelSnap = function(self, k)
