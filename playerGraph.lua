@@ -52,9 +52,10 @@ function playerGraph.load()
    end
 end
 
-function playerGraph.getSnap(k)
-   graph:snapTo(k, math.floor(graph["get_"..k](graph) + 0.5))
-   print(math.floor(graph["get_"..k](graph) + 0.5))
+function playerGraph.setSnap(k)
+   local val = math.floor(graph["get_"..k](graph) + 0.5)
+   val = math.max(minLimits[k], math.min(maxLimits[k], val))
+   graph:snapTo(k, val)
 end
 
 function playerGraph.setIncr(k, bool)
@@ -64,7 +65,7 @@ function playerGraph.setIncr(k, bool)
    elseif love.keyboard.isDown(km["decr_"..k]) then
       doDecr[k] = true
    else
-      playerGraph.getSnap(k)
+      playerGraph.setSnap(k)
    end
 end
 
@@ -75,7 +76,7 @@ function playerGraph.setDecr(k, bool)
    elseif love.keyboard.isDown(km["incr_"..k]) then
       doIncr[k] = true
    else
-      playerGraph.getSnap(k)
+      playerGraph.setSnap(k)
    end
 end
 
