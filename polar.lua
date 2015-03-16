@@ -2,6 +2,42 @@ local incr = math.pi / 128
 local maxPoints = math.floor(2 * math.pi / incr)
 
 local graph = {
+   maxSpeeds = {
+      a = 12,
+      b = 12,
+      n = 12
+   },
+
+   accels = {
+      a = 30,
+      b = 30,
+      n = 24
+   },
+
+   fricts = {
+      a = -12,
+      b = -12,
+      n = -12
+   },
+
+   snap = {
+      a = 0,
+      b = 0,
+      n = 0
+   },
+
+   snapFuzz = {
+      a = 0.05,
+      b = 0.05,
+      n = 0.05,
+   },
+
+   snapSpeedFuzz = {
+      a = 0.5,
+      b = 0.5,
+      n = 0.1
+   },
+
    --- Calculates cartesian points for a given polarized graph object.
    -- @param self  Polarized graph object.
    -- @param scale  Number. Scale of graph. Will augment radius.
@@ -14,6 +50,98 @@ local graph = {
 	 table.insert(self.points, -(r * math.cos(angle)) + self.x)
 	 table.insert(self.points, -(r * math.sin(angle)) + self.y)
       end
+   end,
+
+   setSpeed = function(self, speed, k)
+      self.speed = math.max(-self.maxSpeeds[k], math.min(self.maxSpeeds[k], speed))
+   end,
+
+   getSpeed = function(self)
+      return self.speed
+   end,
+
+   incrSpeed = function(self, k)
+      self.doIncr[k] = true
+      self.doDecr[k] = false
+   end,
+
+   decrSpeed= function(self, k)
+      self.doDecr[k] = true
+      self.doIncr[k] = false
+   end,
+
+   cancelChanges = function(self, k)
+      doIncr[k] = false
+      doDecr[k] = false
+   end,
+
+   update = function(self, dt)
+      local pars = {
+	 a = self.a,
+	 b = self.b,
+	 n = self.n
+      }
+
+      for k, v in pairs(pars) do
+	 if self.speeds[k] > 0 then
+	    self.speeds[k] = math.max(0, self.speeds[k] + self.fricts[k] * dt)
+	 elseif self.speeds[k] < 0 then
+	    self.speeds[k] = math.min(0, self.speeds[k] - self.fricts[k] * dt)
+	 end
+
+	 if self.doIncr[k] then
+	    self.speeds[k] = math.min(
+	       self.maxSpeeds[k],
+	       self.speeds[k] + self.accels[k] * dt
+	    )
+	    self.doIncr[k] = false
+
+         elseif self.doDecr[k] then
+	    self.speeds[k] = math.max(
+	       -self.maxSpeeds[k],
+	       self.speeds[k] - self.accels[k] * dt
+	    )
+	    self.doDecr[k] = false
+
+         elseif self.snap[k] then
+	    if math.abs(self.snap[k] - v) > self.snapFuzz[k] or
+	    math.abs(self.speeds[k]) > self.snapSpeedFuzz[k] then
+	       if v > self.snap[k] then
+		  self.speeds[k] = math.max(
+		     -self.maxSpeeds[k],
+		     self.speeds[k] - self.accels[k] * dt
+		  )
+
+	       elseif v < self.snap[k] then
+		  self.speeds[k] = math.min(
+		     self.maxSpeeds[k],
+		     self.speeds[k] + self.accels[k] * dt
+		  )
+	       end
+
+	    else
+	       self.speeds[k] = 0
+	       pars[k] = self.snap[k]
+	    end
+
+	 elseif math.abs(self.speeds[k]) < 0.01 then
+	    self.speeds[k] = 0
+	 end
+
+	 self["set_"..k](self, math.max(
+			    -self.maxSpeeds[k],
+			    math.min(self.maxSpeeds[k], pars[k] + self.speeds[k] * dt)
+			))
+      end
+   end,
+
+   snapTo = function(self, k, val)
+      self.snap[k] = val
+      print("SNAP",k,val)
+   end,
+
+   cancelSnap = function(self, k)
+      self.snap[k] = false
    end,
 
    get_x = function(self)
@@ -105,6 +233,26 @@ polar = {
 	 a = a or 0,
 	 b = b or 1,
 	 n = n or 1,
+	 speeds = {
+	    a = 0,
+	    b = 0,
+	    n = 0
+	 },
+	 doIncr = {
+	    a = false,
+	    b = false,
+	    n = false
+	 },
+	 doDecr = {
+	    a = false,
+	    b = false,
+	    n = false
+	 },
+	 snap = {
+	    a = false,
+	    b = false,
+	    n = false
+	 },
 	 points = {}
       }
       setmetatable(obj, mt)
