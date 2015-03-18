@@ -1,12 +1,13 @@
 function love.load()
+   require "library"
    require "polar"
    require "playerGraph"
    require "matchGraph"
 
    love.graphics.setBackgroundColor(255, 255, 255)
 
-   --DEGUGGING
-   love.graphics.setFont(love.graphics.newFont(18))
+   --DEBUG
+   love.graphics.setFont(love.graphics.newFont(16))
    --EOF DEBUG
 
    newGraph = polar.new(
