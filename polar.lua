@@ -1,6 +1,3 @@
-local incr = math.pi / 128
-local maxPoints = math.floor(2 * math.pi / incr)
-
 local graph = {
    maxSpeeds = {
       a = 12,
@@ -44,8 +41,8 @@ local graph = {
    calcPoints = function(self)
       self.points = {}
       local angle, r
-      for p = 1, maxPoints + 1 do
-	 angle = incr * p
+      for p = 1, polar.maxPoints + 1 do
+	 angle = polar.angleIncr * p
 	 r = (self.a + (self.b * math.sin(self.n * (angle + self.rads)))) * self.scale
 	 table.insert(self.points, -(r * math.cos(angle)) + self.x)
 	 table.insert(self.points, -(r * math.sin(angle)) + self.y)
@@ -259,5 +256,8 @@ polar = {
       return obj
    end
 }
+
+polar.angleIncr = math.pi / 128
+polar.maxPoints = math.floor(2 * math.pi / polar.angleIncr)
 
 setmetatable(polar, mt)
