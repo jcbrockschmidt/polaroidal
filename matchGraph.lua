@@ -1,13 +1,10 @@
---require "playerGraph"
---require "polar"
-
 matchGraph = {}
 
 matchGraph.graph = polar.new(
       love.graphics.getWidth() / 2,
       love.graphics.getHeight() / 2,
       0, 50,
-      2, -4, 1
+      2, 4, 2
 )
 
 -- When checking if this and the player's polar graph's match, this is how
@@ -28,36 +25,83 @@ function matchGraph.load()
 end
 
 function matchGraph.graphsMatch()
-   local diff = math.abs(
-      math.abs(playerGraph.graph:get_a()) - math.abs(graph:get_a())
-   )
-   if diff > fuzz.a then
-      return false
-   end
+   plyr = {
+      a = playerGraph.graph:get_a(),
+      b = playerGraph.graph:get_b(),
+      n = playerGraph.graph:get_n()
+   }
 
-   local p_b, p_n = playerGraph.graph:get_b(), playerGraph.graph:get_n()
-   local m_b, m_n = graph:get_b(), graph:get_n()
+   this = {
+      a = matchGraph.graph:get_a(),
+      b = matchGraph.graph:get_b(),
+      n = matchGraph.graph:get_n()
+   }
 
-   -- Account for case in which one graph's b AND n are negative value of the
-   -- other's. If this is the case, the graph's will still visually align
-   -- (assuming the a value is also aligned).
-   if ((p_b > 0 and m_b < 0) or (p_b < 0 and m_b > 0)) or
-   ((p_n > 0 and m_n < 0) or (p_n < 0 and m_n > 0)) then
-      if math.abs(math.abs(p_b) - math.abs(m_b)) > fuzz.b then
+   -- If 'n' is near 0
+   if math.abs(this.n) <= matchGraph.fuzz.n then
+      -- Disregard 'b'
+
+      if math.abs(math.abs(plyr.a) - math.abs(this.a)) > matchGraph.fuzz.a then
 	 return false
       end
 
-      if math.abs(math.abs(p_n) - math.abs(m_n)) > fuzz.n then
+      if math.abs(plyr.n - this.n) > matchGraph.fuzz.n then
 	 return false
       end
 
+   -- If 'b' is near 0
+   elseif math.abs(this.b) <= matchGraph.fuzz.b then
+      -- Disregard 'n'
+
+      if math.abs(math.abs(plyr.a) - math.abs(this.a)) > matchGraph.fuzz.a then
+	 return false
+      end
+
+      if math.abs(plyr.b - this.b) > matchGraph.fuzz.b then
+	 return false
+      end
+
+   -- If 'n' is not near 1 and is odd
+   elseif math.abs(this.n) > 1 + matchGraph.fuzz.n and isOdd(this.n) then
+      if math.abs(math.abs(plyr.a) - math.abs(this.a)) > matchGraph.fuzz.a then
+	 return false
+      end
+
+      -- True for positive sign. False for negative sign.
+      local plyr_sign = (plyr.b >= 0) == (plyr.n >= 0)
+      local this_sign = (this.b >= 0) == (this.n >= 0)
+
+      if plyr_sign ~= this_sign then
+	 return false
+      end
+
+      if math.abs(math.abs(plyr.b) - math.abs(this.b)) > matchGraph.fuzz.b then
+	 return false
+      end
+
+      if math.abs(math.abs(plyr.n) - math.abs(this.n)) > matchGraph.fuzz.n then
+	 return false
+      end
+
+   -- Regular checking
    else
-      if math.abs(p_b - m_b) > fuzz.b then
+      -- True for positive sign. False for negative sign.
+      local plyr_sign = true
+      local this_sign = true
+
+      for k, plyr_v in pairs(plyr) do
+	 plyr_sign = plyr_sign == (plyr_v >= 0)
+	 this_sign = this_sign == (this[k] >= 0)
+      end
+
+      if plyr_sign ~= this_sign then
 	 return false
       end
 
-      if math.abs(p_n - m_n) > fuzz.n then
-	 return false
+      for k, plyr_v in pairs(plyr) do
+	 if math.abs(math.abs(plyr_v) - math.abs(this[k])) > matchGraph.fuzz[k] then
+	    return false
+	 end
       end
    end
 
