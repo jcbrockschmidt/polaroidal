@@ -40,12 +40,18 @@ local graph = {
    -- @param scale  Number. Scale of graph. Will augment radius.
    calcPoints = function(self)
       self.points = {}
+      self.peak = 0
       local angle, r
       for p = 1, polar.maxPoints + 1 do
 	 angle = polar.angleIncr * p
-	 r = (self.a + (self.b * math.sin(self.n * (angle + self.rads)))) * self.scale
-	 table.insert(self.points, -(r * math.cos(angle)) + self.x)
-	 table.insert(self.points, -(r * math.sin(angle)) + self.y)
+	 r = (self.a + (self.b * math.sin(self.n * (angle + self.rads))))
+	 table.insert(self.points, -(r * self.scale * math.cos(angle)) + self.x)
+	 local y = r * math.sin(angle)
+	 table.insert(self.points, -y * self.scale + self.y)
+
+	 if math.abs(y) > self.peak then
+	    self.peak = math.abs(y)
+	 end
       end
    end,
 
@@ -138,6 +144,10 @@ local graph = {
 
    cancelSnap = function(self, k)
       self.snap[k] = false
+   end,
+
+   get_peak = function(self)
+      return self.peak
    end,
 
    get_x = function(self)

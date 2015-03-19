@@ -50,6 +50,13 @@ function playerGraph.load()
       doIncr[k] = false
       doDecr[k] = false
    end
+
+   playerGraph.scale = playerGraph.getScale()
+end
+
+function playerGraph.getScale()
+   return (love.graphics.getHeight() / 2) /
+      (math.max(graph:get_peak(), matchGraph.graph:get_peak()) * 1.2)
 end
 
 function playerGraph.setSnap(k)
@@ -107,6 +114,8 @@ function playerGraph.update(dt)
       end
    end
 
+   playerGraph.scale = playerGraph.getScale()
+   graph:set_scale(playerGraph.scale)
    graph:update(dt)
    graph:calcPoints()
 end

@@ -1,10 +1,10 @@
 matchGraph = {}
 
 matchGraph.graph = polar.new(
-      love.graphics.getWidth() / 2,
-      love.graphics.getHeight() / 2,
-      0, 50,
-      2, 4, 2
+   love.graphics.getWidth() / 2,
+   love.graphics.getHeight() / 2,
+   0, 50,
+   2, 4, 2
 )
 
 -- When checking if this and the player's polar graph's match, this is how
@@ -61,8 +61,8 @@ function matchGraph.graphsMatch()
 	 return false
       end
 
-   -- If 'n' is not near 1 and is odd
-   elseif math.abs(this.n) > 1 + matchGraph.fuzz.n and isOdd(this.n) then
+   -- If 'n' is odd
+   elseif isOdd(this.n) then
       if math.abs(math.abs(plyr.a) - math.abs(this.a)) > matchGraph.fuzz.a then
 	 return false
       end
@@ -131,6 +131,9 @@ function matchGraph.update(dt)
    if matchGraph.graphsMatch() then
       matchGraph.shuffleGraph()
    end
+
+   graph:set_scale(playerGraph.scale)
+   graph:calcPoints()
 end
 
 function matchGraph.draw()
