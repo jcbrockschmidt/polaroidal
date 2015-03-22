@@ -51,31 +51,6 @@ function matchGraph.graphsMatch()
       if math.abs(math.abs(plyr.a) - math.abs(this.a)) > matchGraph.fuzz.a then
 	 return false
       end
-   --[[
-   -- If 'n' is near 0
-   if math.abs(this.n) <= matchGraph.fuzz.n then
-      -- Disregard 'b'
-
-      if math.abs(math.abs(plyr.a) - math.abs(this.a)) > matchGraph.fuzz.a then
-	 return false
-      end
-
-      if math.abs(plyr.n - this.n) > matchGraph.fuzz.n then
-	 return false
-      end
-
-   -- If 'b' is near 0
-   elseif math.abs(this.b) <= matchGraph.fuzz.b then
-      -- Disregard 'n'
-
-      if math.abs(math.abs(plyr.a) - math.abs(this.a)) > matchGraph.fuzz.a then
-	 return false
-      end
-
-      if math.abs(plyr.b - this.b) > matchGraph.fuzz.b then
-	 return false
-      end
-   --]]
 
    -- If 'n' is odd
    elseif isOdd(this.n) then
