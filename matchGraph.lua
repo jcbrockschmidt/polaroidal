@@ -121,10 +121,9 @@ function matchGraph.shuffleGraph()
       if new > v then
 	 new = new + 1
       end
-      graph["set_"..k](graph, new)
+      --graph["set_"..k](graph, new)
+      graph:snapTo(k, new)
    end
-
-   graph:calcPoints()
 end
 
 function matchGraph.update(dt)
@@ -133,6 +132,7 @@ function matchGraph.update(dt)
    end
 
    graph:set_scale(playerGraph.scale)
+   graph:update(dt)
    graph:calcPoints()
 end
 
