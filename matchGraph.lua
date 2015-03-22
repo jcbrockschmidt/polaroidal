@@ -37,6 +37,21 @@ function matchGraph.graphsMatch()
       n = matchGraph.graph:get_n()
    }
 
+   -- If 'b' or 'n' is near 0
+   if math.abs(this.n) <= matchGraph.fuzz.n
+   or math.abs(this.b) <= matchGraph.fuzz.b then
+      -- Ensure 'b' or 'n' of player's graph are near 0
+      if not (
+	 math.abs(plyr.n) <= matchGraph.fuzz.n
+	 or math.abs(plyr.b) <= matchGraph.fuzz.b
+      ) then
+	 return false
+      end
+
+      if math.abs(math.abs(plyr.a) - math.abs(this.a)) > matchGraph.fuzz.a then
+	 return false
+      end
+   --[[
    -- If 'n' is near 0
    if math.abs(this.n) <= matchGraph.fuzz.n then
       -- Disregard 'b'
@@ -60,6 +75,7 @@ function matchGraph.graphsMatch()
       if math.abs(plyr.b - this.b) > matchGraph.fuzz.b then
 	 return false
       end
+   --]]
 
    -- If 'n' is odd
    elseif isOdd(this.n) then
