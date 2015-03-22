@@ -21,7 +21,8 @@ local graph = matchGraph.graph
 local fuzz = matchGraph.fuzz
 
 function matchGraph.load()
-   return --> PLACEHOLDER
+   matchGraph.canCheck = true
+   matchGraph.waitFor = {}
 end
 
 function matchGraph.graphsMatch()
@@ -112,14 +113,25 @@ function matchGraph.shuffleGraph()
       if new > v then
 	 new = new + 1
       end
-      --graph["set_"..k](graph, new)
+
       graph:snapTo(k, new)
+      matchGraph.waitFor[k] = new
    end
+
+   matchGraph.canCheck = false
 end
 
 function matchGraph.update(dt)
-   if matchGraph.graphsMatch() then
-      matchGraph.shuffleGraph()
+   if matchGraph.canCheck then
+      if matchGraph.graphsMatch() then
+	 matchGraph.shuffleGraph()
+      end
+   elseif (
+      (math.abs(graph:get_a() - matchGraph.waitFor.a) <= fuzz.a) and
+      (math.abs(graph:get_b() - matchGraph.waitFor.b) <= fuzz.b) and
+      (math.abs(graph:get_n() - matchGraph.waitFor.n) <= fuzz.n)
+   ) then
+	 matchGraph.canCheck = true
    end
 
    graph:set_scale(playerGraph.scale)
