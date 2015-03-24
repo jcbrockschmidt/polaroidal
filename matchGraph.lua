@@ -125,6 +125,7 @@ function matchGraph.update(dt)
    if matchGraph.canCheck then
       if matchGraph.graphsMatch() then
 	 matchGraph.shuffleGraph()
+	 score.incr(1)
       end
    elseif (
       (math.abs(graph:get_a() - matchGraph.waitFor.a) <= fuzz.a) and
@@ -145,6 +146,7 @@ function matchGraph.draw()
    
    --DEBUGGING
    love.graphics.setColor(200, 0, 0, 255)
+   love.graphics.setFont(debugFont)
    love.graphics.print(
       "\n\n\na:\t" .. graph:get_a()
 	 .. "\nb:\t" .. graph:get_b()

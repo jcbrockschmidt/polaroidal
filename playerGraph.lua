@@ -150,6 +150,7 @@ function playerGraph.draw()
    
    --DEBUGGING
    love.graphics.setColor(0, 200, 0, 255)
+   love.graphics.setFont(debugFont)
    love.graphics.print(
       "a:\t" .. graph:get_a()
 	 .. "\nb:\t" .. graph:get_b()
