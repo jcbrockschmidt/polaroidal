@@ -3,11 +3,20 @@ function love.load()
    require "polar"
    require "playerGraph"
    require "matchGraph"
+   require "score"
 
    love.graphics.setBackgroundColor(255, 255, 255)
 
+   fonts = {
+      extraOrdinaryi = love.graphics.newFont("fonts/EXTRAORDINARI CRAFT.ttf", 20),
+      oblivious = love.graphics.newFont("fonts/OBLIVIOUSFONT.TTF", 20),
+      nightfever = love.graphics.newFont("fonts/DBXL Nightfever pc ttfs/DBXLNEW_.TTF", 20),
+
+      score = love.graphics.newFont("fonts/OBLIVIOUSFONT.TTF", 70)
+   }
+
    --DEBUG
-   love.graphics.setFont(love.graphics.newFont(16))
+   debugFont = love.graphics.newFont(16)
    --EOF DEBUG
 
    newGraph = polar.new(
@@ -19,6 +28,8 @@ function love.load()
    )
    playerGraph.load()
    matchGraph.load()
+
+   score.load()
 end
 
 function love.update(dt)
@@ -47,4 +58,6 @@ function love.draw()
 
    matchGraph.draw()
    playerGraph.draw()
+
+   score.draw()
 end
