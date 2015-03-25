@@ -30,7 +30,7 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
-   return
+   menu.keypressed(key)
 end
 
 function love.keyreleased(key)
