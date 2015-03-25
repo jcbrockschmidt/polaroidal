@@ -48,10 +48,12 @@ function menu.keypressed(key)
       end
       menu.curButtonSet:selectButton(newBtn)
 
-   elseif key == " " or key == "return" then
+   elseif key == " " or key == "return" or
+   key == "d" or key == "l" or key == "right" then
       menu.curButtonSet:activate()
 
-   elseif key == "backspace" or key == "b" then
+   elseif key == "backspace" or key == "b" or
+   key == "a" or key == "j" or key == "left" then
       menu.curButtonSet:goBack()
    end
 end
