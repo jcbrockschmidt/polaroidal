@@ -32,24 +32,30 @@ function menu.load()
    menu.curButtonSet = menu.buttonSets[1]
    menu.curButtonSet:selectButton(1)
 
-   menu.graphScale = 30
+   menu.graphScale = 27
+   menu.graphThicknesses = {10, 5}
+   menu.graphColors = {
+      {200, 200, 200, 255},
+      {0, 0, 127, 255}
+   }
    menu.graphs = {}
 
    menu.graphs[1] = polar.new(
       love.graphics.getWidth() / 2,
       love.graphics.getHeight() / 2,
-      0, menu.graphScale, 0, 0, 0)
+      1, menu.graphScale, 0, 0, 0)
 
    menu.graphs[2] = polar.new(
       love.graphics.getWidth() / 2,
       love.graphics.getHeight() / 2,
       0, menu.graphScale, 0, 0, 0)
 
-   menu.graphThicknesses = {10, 5}
-   menu.graphColors = {
-      {200, 200, 200, 255},
-      {0, 0, 127, 255}
-   }
+   menu.maxRads = math.pi
+   menu.radAccel = 0.002
+   menu.maxRadSpeed = 0.01
+   menu.radSpeeds = {0, 0}
+   -- If false, radians will decrease, not halt
+   menu.radsIncr = {true, true}
 
    menu.shuffleGraphPoints()
 end
@@ -83,12 +89,34 @@ function menu.shuffleGraphPoints()
    for k, v in pairs(pars) do
       menu.graphs[1]:snapTo(k, v)
       menu.graphs[2]:snapTo(k, v)
-      print(k, v)
    end
 end
 
 function menu.update(dt)
-   for _, graph in ipairs(menu.graphs) do
+   for k, graph in ipairs(menu.graphs) do
+      local rads = graph:get_rads()
+
+      if menu.radsIncr[k] then
+	 menu.radSpeeds[k] = math.min(
+	    menu.maxRadSpeed,
+	    menu.radSpeeds[k] + menu.radAccel * dt
+	 )
+	 rads = rads + menu.radSpeeds[k]
+	 if rads > menu.maxRads then
+	    menu.radsIncr[k] = false
+	 end
+      else
+	 menu.radSpeeds[k] = math.max(
+	    -menu.maxRadSpeed,
+	    menu.radSpeeds[k] - menu.radAccel * dt
+	 )
+	 rads = rads + menu.radSpeeds[k]
+	 if rads < -menu.maxRads then
+	    menu.radsIncr[k] = true
+	 end
+      end
+
+      graph:set_rads(rads)
       graph:update(dt)
       graph:calcPoints()
    end
