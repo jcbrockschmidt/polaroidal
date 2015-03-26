@@ -1,5 +1,3 @@
---DOIT: account for graph limits
-
 require "polar"
 require "matchGraph"
 
