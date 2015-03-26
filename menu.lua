@@ -31,6 +31,67 @@ function menu.load()
 
    menu.curButtonSet = menu.buttonSets[1]
    menu.curButtonSet:selectButton(1)
+
+   menu.graphScale = 30
+   menu.graphs = {}
+
+   menu.graphs[1] = polar.new(
+      love.graphics.getWidth() / 2,
+      love.graphics.getHeight() / 2,
+      0, menu.graphScale, 0, 0, 0)
+
+   menu.graphs[2] = polar.new(
+      love.graphics.getWidth() / 2,
+      love.graphics.getHeight() / 2,
+      0, menu.graphScale, 0, 0, 0)
+
+   menu.graphThicknesses = {10, 5}
+   menu.graphColors = {
+      {200, 200, 200, 255},
+      {0, 0, 127, 255}
+   }
+
+   menu.shuffleGraphPoints()
+end
+
+function menu.shuffleGraphPoints()
+   local pars = {
+      a = menu.graphs[1]:get_a(),
+      b = menu.graphs[1]:get_b(),
+      n = menu.graphs[1]:get_n()
+   }
+
+   -- Make sure the sign of a is flipped (positive->negative, negative->positive)
+   if pars.a > 0 then
+      pars.a = math.random(playerGraph.minLimits.a, -1)
+   else
+      pars.a = math.random(1, playerGraph.maxLimits.a)
+   end
+
+   local new = math.random(playerGraph.minLimits.b, playerGraph.maxLimits.b - 1)
+   if new > pars.b then
+      new = new + 1
+   end
+   pars.b = new
+
+   new = math.random(playerGraph.minLimits.n, playerGraph.maxLimits.n - 1)
+   if new > pars.n then
+      new = new + 1
+   end
+   pars.n = new
+
+   for k, v in pairs(pars) do
+      menu.graphs[1]:snapTo(k, v)
+      menu.graphs[2]:snapTo(k, v)
+      print(k, v)
+   end
+end
+
+function menu.update(dt)
+   for _, graph in ipairs(menu.graphs) do
+      graph:update(dt)
+      graph:calcPoints()
+   end
 end
 
 function menu.keypressed(key)
@@ -59,6 +120,10 @@ function menu.keypressed(key)
 end
 
 function menu.draw()
+   for gNum, graph in ipairs(menu.graphs) do
+      love.graphics.setColor(menu.graphColors[gNum])
+      graph:draw(menu.graphThicknesses[gNum])
+   end
    menu.curButtonSet:draw()
 end
 
@@ -106,6 +171,7 @@ buttonSet = {
 
    activate = function(self)
       self.buttons[self.curBtn].func()
+      menu.shuffleGraphPoints()
    end,
 
    setBack = function(self, func)
@@ -116,6 +182,7 @@ buttonSet = {
       if self.backFunc then
 	 self.backFunc()
       end
+      menu.shuffleGraphPoints()
    end,
 
    draw = function(self)

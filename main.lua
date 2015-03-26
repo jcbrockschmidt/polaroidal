@@ -26,7 +26,7 @@ function love.load()
 end
 
 function love.update(dt)
-   return
+   menu.update(dt)
 end
 
 function love.keypressed(key)
