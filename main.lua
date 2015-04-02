@@ -6,6 +6,9 @@ function love.load()
    require "menu"
    require "score"
 
+   require "states"
+   require "STATE_menu"
+
    love.graphics.setBackgroundColor(255, 255, 255)
 
    fonts = {
@@ -21,22 +24,7 @@ function love.load()
    playerGraph.load()
    matchGraph.load()
    score.load()
-
    menu.load()
-end
 
-function love.update(dt)
-   menu.update(dt)
-end
-
-function love.keypressed(key)
-   menu.keypressed(key)
-end
-
-function love.keyreleased(key)
-   return
-end
-
-function love.draw()
-   menu.draw()
+   load_state("menu")
 end
