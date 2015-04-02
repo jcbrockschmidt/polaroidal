@@ -18,7 +18,7 @@ function menu.load()
    menu.buttonSets[1]:addButton(
       "Exit",
       function()
-	 love.event.quit()
+	 menu.close(love.event.quit)
       end )
    menu.buttonSets[2]:addButton("Challenge", function() return end)
    menu.buttonSets[2]:addButton("Casual", function() return end)
@@ -43,7 +43,7 @@ function menu.load()
    menu.graphs[1] = polar.new(
       love.graphics.getWidth() / 2,
       love.graphics.getHeight() / 2,
-      1, menu.graphScale, 0, 0, 0)
+      0, menu.graphScale, 0, 0, 0)
 
    menu.graphs[2] = polar.new(
       love.graphics.getWidth() / 2,
@@ -53,10 +53,39 @@ function menu.load()
    menu.maxRads = math.pi
    menu.radAccel = 0.002
    menu.maxRadSpeed = 0.01
-   menu.radSpeeds = {0, 0}
-   -- If false, radians will decrease, not halt
-   menu.radsIncr = {true, true}
+   menu.radSpeeds = {}
+   -- Indices correspond with graph numbers
+   -- If value is true, graph's rads will increase
+   -- If value is false, graph's rads will decrease
+   menu.radsIncr = {}
 
+   -- Used while closing menu
+   -- Indices correspond with graph numbers
+   -- Values are tables whose indices are 'a', 'b' and 'n', all graph parameters
+   menu.closingSigns = {{}, {}}
+
+   -- Used while closing menu
+   -- Indices correspond with graph numbers
+   -- Values are tables whose indices are 'a', 'b' and 'n', all graph parameters
+   -- True if the graph has closed, false otherwise
+   menu.closed = {{}, {}}
+
+   menu.reload()
+end
+
+function menu.reload()
+   menu.isClosing = false
+   menu.canSelect = true
+   for _, par in pairs({"a", "b", "n"}) do
+      menu.closed[1][par] = false
+      menu.closed[2][par] = false
+   end
+   menu.radSpeeds[1] = 0
+   menu.radSpeeds[2] = 0
+   menu.radsIncr[1] = true
+   menu.radsIncr[2] = true
+   menu.graphs[1]:set_rads(math.pi/4)
+   menu.graphs[2]:set_rads(0)
    menu.shuffleGraphPoints()
 end
 
@@ -120,9 +149,48 @@ function menu.update(dt)
       graph:update(dt)
       graph:calcPoints()
    end
+
+   if menu.isClosing then
+      closed = true
+
+      for g = 1, 2 do
+	 for _, par in pairs({"a", "b", "n"}) do
+	    if not menu.closed[g][par] then
+	       -- If parameter was positive when closing initiated
+	       if menu.closingSigns[g][par] then
+		  if menu.graphs[g]["get_"..par](menu.graphs[g]) <= 0 then
+		     menu.graphs[g]:halt(par)
+		     menu.graphs[g]["set_"..par](menu.graphs[g], 0)
+		     menu.closed[g][par] = true
+		  else
+		     closed = false
+		  end
+
+	       -- If parameter was negative when closing initiated
+	       else
+		  if menu.graphs[g]["get_"..par](menu.graphs[g]) >= 0 then
+		     menu.graphs[g]:halt(par)
+		     menu.graphs[g]["set_"..par](menu.graphs[g], 0)
+		     menu.closed[g][par] = true
+		  else
+		     closed = false
+		  end
+	       end
+	    end
+	 end
+      end
+
+      if closed then
+	 menu.closingFunc(unpack(menu.closingArgs))
+      end
+   end
 end
 
 function menu.keypressed(key)
+   if not menu.canSelect then
+      return
+   end
+
    if key == "w" or key == "i" or key == "up" then
       newBtn = menu.curButtonSet.curBtn - 1
       if newBtn < 1 then
@@ -153,6 +221,26 @@ function menu.draw()
       graph:draw(menu.graphThicknesses[gNum])
    end
    menu.curButtonSet:draw()
+end
+
+-- Does closing effect for menu and calls the given callback (cb) with the
+-- given arguments (...) when it finishes
+function menu.close(cb, ...)
+   menu.isClosing = true
+   menu.canSelect = false
+   menu.closingFunc = cb
+   menu.closingArgs = {...}
+   for g = 1, 2 do
+      for _, par in ipairs({"a", "b", "n"}) do
+	 menu.graphs[g]:snapTo(par, 0)
+	 if menu.graphs[g]["get_"..par](menu.graphs[g]) > 0 then
+	    menu.closingSigns[g][par] = true
+	 else
+	    menu.closingSigns[g][par] = false
+	 end
+	 menu.closed[g][par] = false
+      end
+   end
 end
 
 local buttonSet_mt = {}
@@ -199,7 +287,9 @@ buttonSet = {
 
    activate = function(self)
       self.buttons[self.curBtn].func()
-      menu.shuffleGraphPoints()
+      if not menu.isClosing then
+	 menu.shuffleGraphPoints()
+      end
    end,
 
    setBack = function(self, func)

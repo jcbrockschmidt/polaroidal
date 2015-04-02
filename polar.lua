@@ -55,12 +55,12 @@ local graph = {
       end
    end,
 
-   setSpeed = function(self, speed, k)
-      self.speed = math.max(-self.maxSpeeds[k], math.min(self.maxSpeeds[k], speed))
+   setSpeed = function(self, k, speed)
+      self.speeds[k] = math.max(-self.maxSpeeds[k], math.min(self.maxSpeeds[k], speed))
    end,
 
-   getSpeed = function(self)
-      return self.speed
+   getSpeed = function(self, k)
+      return self.speeds[k]
    end,
 
    incrSpeed = function(self, k)
@@ -74,8 +74,8 @@ local graph = {
    end,
 
    cancelChanges = function(self, k)
-      doIncr[k] = false
-      doDecr[k] = false
+      self.doIncr[k] = false
+      self.doDecr[k] = false
    end,
 
    update = function(self, dt)
@@ -144,6 +144,11 @@ local graph = {
 
    cancelSnap = function(self, k)
       self.snap[k] = false
+   end,
+
+   halt = function(self, k)
+      self:cancelSnap(k)
+      self:setSpeed(k, 0)
    end,
 
    get_peak = function(self)
