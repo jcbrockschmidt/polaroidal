@@ -44,12 +44,20 @@ local maxLimits = playerGraph.maxLimits
 local minLimits = playerGraph.minLimits
 
 function playerGraph.load()
-   for _, k in pairs({"a", "b", "n"}) do
-      doIncr[k] = false
-      doDecr[k] = false
-   end
-
    playerGraph.scale = playerGraph.getScale()
+end
+
+function playerGraph.reload()
+   for _, par in pairs({"a", "b", "n"}) do
+      doIncr[par] = false
+      doDecr[par] = false
+
+      graph["set_"..par](graph, 0)
+      local snap = math.random(minLimits[par], maxLimits[par] - 1)
+      -- Ensure new parameter is not zero to avoid having an invisible graph
+      if snap >= 0 then snap = snap + 1 end
+      graph:snapTo(snap)
+   end
 end
 
 function playerGraph.getScale()

@@ -20,9 +20,21 @@ function menu.load()
       function()
 	 menu.close(love.event.quit)
       end )
-   menu.buttonSets[2]:addButton("Challenge", function() return end)
-   menu.buttonSets[2]:addButton("Casual", function() return end)
-   menu.buttonSets[2]:addButton("Timed", function() return end)
+   menu.buttonSets[2]:addButton(
+      "Challenge",
+      function()
+	 menu.close(newGame, "challenge")
+      end )
+   menu.buttonSets[2]:addButton(
+      "Timed",
+      function()
+	 menu.close(newGame, "timed")
+      end )
+   menu.buttonSets[2]:addButton(
+      "Casual",
+      function()
+	 menu.close(newGame, "casual")
+      end )
    menu.buttonSets[2]:setBack(
       function ()
 	 menu.curButtonSet = menu.buttonSets[1]

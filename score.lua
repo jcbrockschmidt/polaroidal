@@ -4,7 +4,7 @@ score = {
    y = 40
 }
 
-function score.load()
+function score.reload()
    score.score = 0
 end
 

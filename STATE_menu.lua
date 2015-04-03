@@ -1,7 +1,7 @@
 states.menu = {}
 
-function states.reload()
-   
+function states.menu.reload()
+   menu.reload()
 end
 
 function states.menu.update(dt)

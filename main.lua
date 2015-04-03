@@ -1,4 +1,5 @@
 function love.load()
+   require "game"
    require "library"
    require "polar"
    require "playerGraph"
@@ -7,6 +8,7 @@ function love.load()
    require "score"
 
    require "states"
+   require "STATE_game"
    require "STATE_menu"
 
    love.graphics.setBackgroundColor(255, 255, 255)
@@ -23,7 +25,6 @@ function love.load()
 
    playerGraph.load()
    matchGraph.load()
-   score.load()
    menu.load()
 
    load_state("menu")
