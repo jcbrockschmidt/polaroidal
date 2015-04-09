@@ -6,6 +6,7 @@ function love.load()
    require "matchGraph"
    require "menu"
    require "score"
+   require "timers"
 
    require "states"
    require "STATE_game"
