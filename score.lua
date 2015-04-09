@@ -1,5 +1,3 @@
---DOIT: line is twitching; fix that
-
 score = {
    numColor = {0, 0, 255, 255},
    x = 50,
