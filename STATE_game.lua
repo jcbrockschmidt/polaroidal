@@ -1,7 +1,8 @@
 local alpha
 local isFading
+local backFade
 local fadeFinal = 100
-local fadeTime = 1
+local fadeTime = 0.25
 local fadeDelta = fadeFinal / fadeTime
 
 states.game = {}
@@ -19,8 +20,12 @@ function states.game.update(dt)
       score.update(dt)
    end
 
-   if pause and isFading then
-      alpha = alpha + fadeDelta*dt
+   if isFading then
+      if backFade then
+         alpha = alpha - fadeDelta*dt
+      else
+         alpha = alpha + fadeDelta*dt
+      end
    end
 end
 
@@ -28,7 +33,18 @@ function states.game.keypressed(key)
    if pause then
 
       if key == "escape" then
-	 pause = false
+         isFading = true
+         backFade = true
+         alpha = fadeFinal
+         timers.new(
+            fadeTime,
+            function()
+               alpha = 0
+               isFading = false
+               backFade = false
+            end
+         )
+         pause = false
       end
 
    elseif key == "escape" then
@@ -61,7 +77,7 @@ function states.game.draw()
    playerGraph.draw()
    score.draw()
 
-   if pause then
+   if pause or isFading then
       -- Draw haze over screen
       love.graphics.setColor(0, 0, 0, alpha)
       love.graphics.rectangle(
@@ -70,5 +86,10 @@ function states.game.draw()
 	 love.graphics.getWidth(),
 	 love.graphics.getHeight()
       )
+      -- Draw pause text
+      if not isFading then
+         love.graphics.setColor(0, 0, 255, 255)
+         love.graphics.print("- PAUSED -", math.floor(love.graphics.getWidth() / 2) - 215, math.floor(love.graphics.getHeight() / 2) - 35)
+      end
    end
 end
