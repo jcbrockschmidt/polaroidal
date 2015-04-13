@@ -1,4 +1,6 @@
 function love.load()
+   math.randomseed(os.time())
+
    require "game"
    require "library"
    require "polar"
