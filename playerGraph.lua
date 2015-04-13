@@ -47,12 +47,28 @@ function playerGraph.load()
 end
 
 function playerGraph.reload()
+   -- Set all parameters to zero
    for _, par in pairs({"a", "b", "n"}) do
       doIncr[par] = false
       doDecr[par] = false
 
       graph["set_"..par](graph, 0)
+   end
+
+   playerGraph.canMove = false
+   timers.new(
+      1,
+      function()
+	 playerGraph.shuffleGraph()
+	 playerGraph.canMove = true
+      end
+   )
+end
+
+function playerGraph.shuffleGraph()
+   for _, par in pairs({"a", "b", "n"}) do
       local snap = math.random(minLimits[par], maxLimits[par] - 1)
+
       -- Ensure new parameter is not zero to avoid having an invisible graph
       if snap >= 0 then snap = snap + 1 end
       graph:snapTo(par, snap)
@@ -126,6 +142,10 @@ function playerGraph.update(dt)
 end
 
 function playerGraph.keypressed(key)
+   if not playerGraph.canMove then
+      return
+   end
+
    for _, k in ipairs({"a", "b", "n"}) do
       if key == km["incr_"..k] then
 	 playerGraph.setIncr(k, true)
@@ -138,6 +158,10 @@ function playerGraph.keypressed(key)
 end
 
 function playerGraph.keyreleased(key)
+   if not playerGraph.canMove then
+      return
+   end
+
    for _, k in ipairs({"a", "b", "n"}) do
       if key == km["incr_"..k] then
 	 playerGraph.setIncr(k, false)
