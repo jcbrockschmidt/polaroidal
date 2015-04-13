@@ -1,9 +1,9 @@
 local alpha
 local isFading
 local backFade
+local fadeTimerID
 local fadeFinal = 100
-local fadeTime = 0.25
-local fadeDelta = fadeFinal / fadeTime
+local fadeDelta = fadeFinal / 0.25
 
 states.game = {}
 
@@ -11,6 +11,8 @@ function states.game.reload()
    playerGraph.reload()
    matchGraph.reload()
    score.reload()
+
+   alpha = 0
 end
 
 function states.game.update(dt)
@@ -35,28 +37,39 @@ function states.game.keypressed(key)
    if pause then
 
       if key == "escape" then
+         pause = false
+
          isFading = true
          backFade = true
-         alpha = fadeFinal
-         timers.new(
-            fadeTime,
+
+	 if fadeTimerID then
+	    timers.del(fadeTimerID)
+	 end
+
+         fadeTimerID = timers.new(
+            alpha / fadeDelta,
             function()
-               alpha = 0
+	       fadeTimerID = nil
+	       alpha = 0
                isFading = false
-               backFade = false
             end
          )
-         pause = false
       end
 
    elseif key == "escape" then
       pause = true
 
       isFading = true
-      alpha = 0
-      timers.new(
-	 fadeTime,
+      backFade = false
+
+      if fadeTimerID then
+	 timers.del(fadeTimerID)
+      end
+
+      fadeTimerID = timers.new(
+	 (fadeFinal - alpha) / fadeDelta,
 	 function()
+	    fadeTimerID = nil
 	    alpha = fadeFinal
 	    isFading = false
 	 end
