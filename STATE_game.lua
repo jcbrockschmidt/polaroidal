@@ -8,6 +8,8 @@ local fadeDelta = fadeFinal / fadeTime
 states.game = {}
 
 function states.game.reload()
+   playerGraph.reload()
+   matchGraph.reload()
    score.reload()
 end
 

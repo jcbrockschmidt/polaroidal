@@ -6,9 +6,8 @@ playerGraph = {}
 playerGraph.graph = polar.new(
       love.graphics.getWidth() / 2,
       love.graphics.getHeight() / 2,
-      0,
-      50,
-      0, 3, 1
+      0, 0,
+      0, 0, 0
 )
 
 playerGraph.keyMaps = {
@@ -56,7 +55,7 @@ function playerGraph.reload()
       local snap = math.random(minLimits[par], maxLimits[par] - 1)
       -- Ensure new parameter is not zero to avoid having an invisible graph
       if snap >= 0 then snap = snap + 1 end
-      graph:snapTo(snap)
+      graph:snapTo(par, snap)
    end
 end
 

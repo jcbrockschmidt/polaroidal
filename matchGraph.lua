@@ -3,8 +3,8 @@ matchGraph = {}
 matchGraph.graph = polar.new(
    love.graphics.getWidth() / 2,
    love.graphics.getHeight() / 2,
-   0, 50,
-   2, 4, 2
+   0, 0,
+   0, 0, 0
 )
 
 -- When checking if this and the player's polar graph's match, this is how
@@ -23,6 +23,10 @@ local fuzz = matchGraph.fuzz
 function matchGraph.load()
    matchGraph.canCheck = true
    matchGraph.waitFor = {}
+end
+
+function matchGraph.reload()
+   matchGraph.shuffleGraph()
 end
 
 function matchGraph.graphsMatch()
