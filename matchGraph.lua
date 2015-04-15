@@ -111,6 +111,7 @@ function matchGraph.shuffleGraph()
       n = graph:get_n()
    }
 
+   -- Grab new parameters
    for k, v in pairs(polarPars) do
       local new = math.random(playerGraph.minLimits[k], playerGraph.maxLimits[k] - 1)
       -- Ensure that new value actually changes.
@@ -118,8 +119,27 @@ function matchGraph.shuffleGraph()
 	 new = new + 1
       end
 
-      graph:snapTo(k, new)
-      matchGraph.waitFor[k] = new
+      polarPars[k] = new
+   end
+
+   -- Ensure at least one of the parameters is not 0 so the graph is visible
+   if polarPars.a == 0 and polarPars.b == 0 and polarPars.n == 0 then
+      local k
+      local rand = math.random(3)
+      if     rand == 1 then k = "a"
+      elseif rand == 2 then k = "b"
+      else                  k = "n" end
+
+      polarPars[k] = math.random(playerGraph.minLimits[k], playerGraph.maxLimits[k] - 1)
+      if polarPars[k] >= 0 then
+	 polarPars[k] = polarPars[k] + 1
+      end
+   end
+
+   -- Apply new parameters
+   for k, v in pairs(polarPars) do
+      graph:snapTo(k, v)
+      matchGraph.waitFor[k] = v
    end
 
    matchGraph.canCheck = false
