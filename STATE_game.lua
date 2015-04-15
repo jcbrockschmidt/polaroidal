@@ -22,6 +22,9 @@ function states.game.update(dt)
       playerGraph.update(dt)
       matchGraph.update(dt)
       score.update(dt)
+      if game.timer.active then
+	 game.timer.update(dt)
+      end
    end
 
    if isFading then
@@ -90,6 +93,9 @@ end
 function states.game.draw()
    matchGraph.draw()
    playerGraph.draw()
+   if game.timer.active then
+      game.timer.draw()
+   end
    score.draw()
 
    if pause or isFading then

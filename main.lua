@@ -29,7 +29,9 @@ function love.load()
    playerGraph.load()
    matchGraph.load()
    score.load()
+   game.load()
    menu.load()
 
-   load_state("game")
+   game.new("timed", 100)
+   --load_state("menu")
 end
