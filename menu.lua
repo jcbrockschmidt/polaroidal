@@ -23,17 +23,17 @@ function menu.load()
    menu.buttonSets[2]:addButton(
       "Challenge",
       function()
-	 menu.close(newGame, "challenge")
+	 menu.close(game.new, "challenge")
       end )
    menu.buttonSets[2]:addButton(
       "Timed",
       function()
-	 menu.close(newGame, "timed")
+	 menu.close(game.new, "timed", 10)
       end )
    menu.buttonSets[2]:addButton(
       "Casual",
       function()
-	 menu.close(newGame, "casual")
+	 menu.close(game.new, "casual")
       end )
    menu.buttonSets[2]:setBack(
       function ()
@@ -245,11 +245,7 @@ function menu.close(cb, ...)
    for g = 1, 2 do
       for _, par in ipairs({"a", "b", "n"}) do
 	 menu.graphs[g]:snapTo(par, 0)
-	 if menu.graphs[g]["get_"..par](menu.graphs[g]) > 0 then
-	    menu.closingSigns[g][par] = true
-	 else
-	    menu.closingSigns[g][par] = false
-	 end
+	 menu.closingSigns[g][par] = (menu.graphs[g]["get_"..par](menu.graphs[g]) > 0)
 	 menu.closed[g][par] = false
       end
    end

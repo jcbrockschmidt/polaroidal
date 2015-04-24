@@ -42,10 +42,6 @@ local doDecr = playerGraph.doDecr
 local maxLimits = playerGraph.maxLimits
 local minLimits = playerGraph.minLimits
 
-function playerGraph.load()
-   playerGraph.scale = playerGraph.getScale()
-end
-
 function playerGraph.reload()
    -- Set all parameters to zero
    for _, par in pairs({"a", "b", "n"}) do
@@ -73,11 +69,6 @@ function playerGraph.shuffleGraph()
       if snap >= 0 then snap = snap + 1 end
       graph:snapTo(par, snap)
    end
-end
-
-function playerGraph.getScale()
-   return (love.graphics.getHeight() / 2) /
-      (math.max(graph:get_peak(), matchGraph.graph:get_peak()) * 1.2)
 end
 
 function playerGraph.setSnap(k)
@@ -135,8 +126,6 @@ function playerGraph.update(dt)
       end
    end
 
-   playerGraph.scale = playerGraph.getScale()
-   graph:set_scale(playerGraph.scale)
    graph:update(dt)
    graph:calcPoints()
 end

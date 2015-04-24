@@ -55,6 +55,7 @@ local graph = {
       end
    end,
 
+
    setSpeed = function(self, k, speed)
       self.speeds[k] = math.max(-self.maxSpeeds[k], math.min(self.maxSpeeds[k], speed))
    end,

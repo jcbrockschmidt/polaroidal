@@ -11,6 +11,7 @@ function states.game.reload()
    playerGraph.reload()
    matchGraph.reload()
    score.reload()
+   game.reload()
 
    alpha = 0
 end
@@ -22,9 +23,7 @@ function states.game.update(dt)
       playerGraph.update(dt)
       matchGraph.update(dt)
       score.update(dt)
-      if game.timer.active then
-	 game.timer.update(dt)
-      end
+      game.update(dt)
    end
 
    if isFading then

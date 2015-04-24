@@ -26,6 +26,7 @@ function matchGraph.load()
 end
 
 function matchGraph.reload()
+   matchGraph.canShuffle = true
    matchGraph.shuffleGraph()
 end
 
@@ -146,20 +147,21 @@ function matchGraph.shuffleGraph()
 end
 
 function matchGraph.update(dt)
-   if matchGraph.canCheck then
-      if matchGraph.graphsMatch() then
-	 matchGraph.shuffleGraph()
-	 score.incr(1)
-      end
-   elseif (
-      (math.abs(graph:get_a() - matchGraph.waitFor.a) <= fuzz.a) and
-      (math.abs(graph:get_b() - matchGraph.waitFor.b) <= fuzz.b) and
-      (math.abs(graph:get_n() - matchGraph.waitFor.n) <= fuzz.n)
-   ) then
+   if matchGraph.canShuffle then
+      if matchGraph.canCheck then
+	 if matchGraph.graphsMatch() then
+	    matchGraph.shuffleGraph()
+	    score.incr(1)
+	 end
+      elseif (
+	 (math.abs(graph:get_a() - matchGraph.waitFor.a) <= fuzz.a) and
+	    (math.abs(graph:get_b() - matchGraph.waitFor.b) <= fuzz.b) and
+	    (math.abs(graph:get_n() - matchGraph.waitFor.n) <= fuzz.n)
+      ) then
 	 matchGraph.canCheck = true
+      end
    end
 
-   graph:set_scale(playerGraph.scale)
    graph:update(dt)
    graph:calcPoints()
 end

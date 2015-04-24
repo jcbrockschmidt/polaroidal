@@ -24,7 +24,7 @@ function score.reload()
    line.w = 0
    line.w_goal = 0
    line.adjust = false
-   score.set(50)
+   score.set(0)
 end
 
 function score.update(dt)
