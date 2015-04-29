@@ -1,5 +1,6 @@
 --DOIT: * create function for ending the game
 --         - have graph's disappear after parameters have reached or gone past 0
+--      * have timer rapidly deplete once game begins stopping
 
 game = {
    timer = {
