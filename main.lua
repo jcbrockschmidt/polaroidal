@@ -26,10 +26,8 @@ function love.load()
    debugFont = love.graphics.newFont(16)
    --EOF DEBUG
 
-   matchGraph.load()
-   score.load()
-   game.load()
-   menu.load()
+   states.menu.load()
+   states.game.load()
 
    load_state("menu")
 end
