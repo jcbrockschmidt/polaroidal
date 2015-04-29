@@ -1,5 +1,9 @@
 states.menu = {}
 
+function states.menu.load()
+   menu.load()
+end
+
 function states.menu.reload()
    menu.reload()
 end
