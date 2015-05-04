@@ -75,7 +75,7 @@ function score.set(newScore)
 end
 
 function score.incr(incr)
-   score.score = score.score + incr
+   score.set(score.score + incr)
 end
 
 function score.draw()
