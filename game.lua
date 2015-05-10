@@ -1,10 +1,8 @@
---DOIT: * create function for ending the game
---         - have graph's disappear after parameters have reached or gone past 0
---      * have timer rapidly deplete once game begins stopping
 
 game = {
    timer = {
-      color = {200, 200, 255, 255}
+      color = {200, 200, 255, 255},
+      trans_accel = 2*math.pi
    },
 
    stopping = {
@@ -23,6 +21,11 @@ end
 function game.reload()
    game.stopping.isStopping = false
    game.adjustScale = true
+   game.timer.active = false
+   game.timer.t_orig = 0
+   game.timer.t_cur = 0
+   game.timer.trans = false
+   game.timer.trans_speed = 0
 end
 
 -- Valide modes:
@@ -35,35 +38,44 @@ function game.new(mode, ...)
    pause = false
    load_state("game")
    if mode == "casual" then
-      game.timer.active = false
       --DOIT
+
    elseif mode == "timed" then
-      game.timer.active = true
-      game.timer.t_orig = arg[1]
-      game.timer.t_cur = arg[1]
+      game.timer.set(arg[1])
+
+   elseif mode == "challenge" then
+      --DOIT
    end
-   --DOIT
 end
 
 function game.stop(endFunc)
    game.stopping.isStopping = true
    game.stopping.endFunc = endFunc
 
+   game.timer.set(game.timer.t_orig, false)
+
    game.adjustScale = false
 
    playerGraph.canMove = false
    matchGraph.canShuffle = false
    for _, par in pairs({"a", "b", "n"}) do
-      matchGraph.graph:snapTo(par, 0)
       game.stopping.signs.plyr[par] =
 	 (playerGraph.graph["get_"..par](playerGraph.graph) > 0)
       game.stopping.signs.match[par] =
 	 (matchGraph.graph["get_"..par](matchGraph.graph) > 0)
    end
 
-   -- Delay collapsing of player's graph
+   -- Delay collapsing of graphs
    timers.new(
       1,
+      function()
+	 for _, par in pairs({"a", "b", "n"}) do
+	    matchGraph.graph:snapTo(par, 0)
+	 end
+      end
+   )
+   timers.new(
+      2,
       function()
 	 for _, par in pairs({"a", "b", "n"}) do
 	    playerGraph.graph:snapTo(par, 0)
@@ -119,22 +131,84 @@ function game.update(dt)
    end
 end
 
-function game.timer.update(dt)
-   game.timer.t_cur = game.timer.t_cur - dt
-   if game.timer.t_cur <= 0 then
-      game.timer.active = false
-      game.timer.t_cur = 0
+function game.timer.set(t, dir)
+   if dir == nil then
+      dir = true
+   end
 
-      game.stop(
-	 function()
-	    timers.new(
-	       2,
-	       function()
-		  load_state("menu")
-	       end
-	    )
+   game.timer.active = true
+   game.timer.trans = true
+   -- Make speed does not equal 0 so game does not immediately terminate
+   game.timer.trans_speed = dir and 0.1 or -0.1
+   -- If true, t_cur must go below t_target
+   -- If false, t_cur must go above t_target
+   game.timer.transDir = dir
+
+   local percent = (game.timer.t_orig ~= 0)
+      and game.timer.t_cur / game.timer.t_orig
+      or 0
+   game.timer.t_orig = t
+   game.timer.t_cur = t * percent
+   game.timer.t_target = dir and game.timer.t_orig or 0
+end
+
+function game.timer.update(dt)
+   if game.timer.trans then
+      -- If transDir is true, increase timer
+      -- If transDir is false, decrease timer
+      local sign = game.timer.transDir and 1 or -1
+      -- Calculate how long it'd take for the timer ring to decelerate and stop
+      local t = game.timer.trans_speed / game.timer.trans_accel
+      -- Calculate how many rads ring would change by if ring started decelerating now
+      local rads = game.timer.trans_speed + (0.5 * -game.timer.trans_speed * t*t)
+
+      -- See if timer ring needs to be pushed a bit further before decelerating
+      -- Subtract a bit to rads so deceleration is slightly delayed
+      if rads-math.pi <=
+      ((game.timer.t_orig-game.timer.t_target) / game.timer.t_orig) * 2*math.pi
+      then
+	 game.timer.trans_speed = game.timer.trans_speed + sign*game.timer.trans_accel*dt
+      else
+	 game.timer.trans_speed = game.timer.trans_speed - sign*game.timer.trans_accel*dt
+      end
+
+      -- Convert rad increase speed to time increase speed
+      game.timer.t_cur = game.timer.t_cur +
+	 (game.timer.t_orig * game.timer.trans_speed/(2*math.pi)) * dt
+
+      local done = false
+      if game.timer.transDir then
+	 if game.timer.t_cur >= game.timer.t_target
+	 or game.timer.trans_speed <= 0 then
+	    done = true
 	 end
-      )
+      elseif game.timer.t_cur <= game.timer.t_target
+      or game.timer.trans_speed >= 0 then
+	 done = true
+	 game.timer.active = false
+      end
+
+      if done then
+	 game.timer.trans = false
+	 game.timer.t_cur = game.timer.t_target
+      end
+   else
+      game.timer.t_cur = game.timer.t_cur - dt
+      if game.timer.t_cur <= 0 then
+	 game.timer.active = false
+	 game.timer.t_cur = 0
+
+	 game.stop(
+	    function()
+	       timers.new(
+		  2,
+		  function()
+		     load_state("menu")
+		  end
+	       )
+	    end
+	 )
+      end
    end
 end
 
