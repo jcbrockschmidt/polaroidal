@@ -152,6 +152,9 @@ function matchGraph.update(dt)
 	 if matchGraph.graphsMatch() then
 	    matchGraph.shuffleGraph()
 	    score.incr(1)
+	    if game.challenge.active then
+	       game.challenge.decrTimer()
+	    end
 	 end
       elseif (
 	 (math.abs(graph:get_a() - matchGraph.waitFor.a) <= fuzz.a) and

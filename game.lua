@@ -10,6 +10,12 @@ game = {
 	 plyr = {},
 	 match = {}
       }
+   },
+
+   challenge = {
+      -- Time reduces by 5% each time timeRetained is applied to it
+      startTime = 30,
+      timeRetained = 0.97
    }
 }
 
@@ -26,6 +32,7 @@ function game.reload()
    game.timer.t_cur = 0
    game.timer.trans = false
    game.timer.trans_speed = 0
+   game.challenge.active = false
 end
 
 -- Valide modes:
@@ -37,14 +44,19 @@ function game.new(mode, ...)
 
    pause = false
    load_state("game")
-   if mode == "casual" then
-      --DOIT
-
-   elseif mode == "timed" then
+   if mode == "timed" then
+      -- Player is given a finite amount of time to get as many matches as possible
       game.timer.set(arg[1])
 
    elseif mode == "challenge" then
-      --DOIT
+      -- Game timer resets every time player gets a point
+      -- Time given for each point gradually decreases
+      game.challenge.active = true
+      game.challenge.time = game.challenge.startTime
+      game.timer.set(game.challenge.time)
+
+   elseif mode ~= "casual" then
+      print("ERROR: invalid gamemode! defaulting to casual")
    end
 end
 
@@ -220,4 +232,9 @@ function game.timer.draw()
       50,
       0, 2*math.pi * (game.timer.t_cur/game.timer.t_orig)
    )
+end
+
+function game.challenge.decrTimer()
+   game.challenge.time = game.challenge.time * game.challenge.timeRetained
+   game.timer.set(game.challenge.time)
 end
