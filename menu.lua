@@ -221,7 +221,7 @@ function menu.keypressed(key)
    key == "d" or key == "l" or key == "right" then
       menu.curButtonSet:activate()
 
-   elseif key == "backspace" or key == "b" or
+   elseif key == "backspace" or key == "escape" or key == "b" or
    key == "a" or key == "j" or key == "left" then
       menu.curButtonSet:goBack()
    end
