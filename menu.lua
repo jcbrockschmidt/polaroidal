@@ -5,8 +5,11 @@ function menu.load()
 
    menu.buttonSets = {
       buttonSet.new(),
+      buttonSet.new(),
       buttonSet.new()
    }
+
+   -- Start menu
    menu.buttonSets[1]:addButton(
       "Play",
       function()
@@ -20,6 +23,8 @@ function menu.load()
       function()
 	 menu.close(love.event.quit)
       end )
+
+   -- Gamemodes
    menu.buttonSets[2]:addButton(
       "Challenge",
       function()
@@ -28,7 +33,8 @@ function menu.load()
    menu.buttonSets[2]:addButton(
       "Timed",
       function()
-	 menu.close(game.new, "timed", 10)
+	 menu.curButtonSet = menu.buttonSets[3]
+	 menu.curButtonSet:selectButton(1)
       end )
    menu.buttonSets[2]:addButton(
       "Casual",
@@ -36,9 +42,31 @@ function menu.load()
 	 menu.close(game.new, "casual")
       end )
    menu.buttonSets[2]:setBack(
-      function ()
+      function()
 	 menu.curButtonSet = menu.buttonSets[1]
 	 menu.curButtonSet:selectButton(1)
+      end )
+
+   -- Timed games
+   menu.buttonSets[3]:addButton(
+      "5 minutes",
+      function()
+	 menu.close(game.new, "timed", 300)
+      end )
+   menu.buttonSets[3]:addButton(
+      "3 minutes",
+      function()
+	 menu.close(game.new, "timed", 180)
+      end )
+   menu.buttonSets[3]:addButton(
+      "1 minute",
+      function()
+	 menu.close(game.new, "timed", 60)
+      end )
+   menu.buttonSets[3]:setBack(
+      function()
+	 menu.curButtonSet = menu.buttonSets[2]
+	 menu.curButtonSet:selectButton(2)
       end )
 
    menu.curButtonSet = menu.buttonSets[1]
