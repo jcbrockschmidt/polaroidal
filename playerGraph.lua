@@ -1,3 +1,6 @@
+--DOIT
+-- * tweak controls; make more fluid; will probably keep snapping for petals, though
+
 require "polar"
 require "matchGraph"
 

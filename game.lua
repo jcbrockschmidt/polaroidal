@@ -217,7 +217,7 @@ function game.timer.update(dt)
 	       timers.new(
 		  2,
 		  function()
-		     load_state("menu")
+		     load_state("dispScore")
 		  end
 	       )
 	    end

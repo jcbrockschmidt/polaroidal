@@ -143,7 +143,7 @@ function states.game.keypressed(key)
 		  timers.new(
 		     2,
 		     function()
-			load_state("menu")
+			load_state("dispScore")
 		     end
 		  )
 	       end
