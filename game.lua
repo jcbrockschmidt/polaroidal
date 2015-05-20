@@ -1,3 +1,5 @@
+--DOIT
+-- * display score when game ends
 
 game = {
    timer = {
@@ -13,7 +15,7 @@ game = {
    },
 
    challenge = {
-      -- Time reduces by 5% each time timeRetained is applied to it
+      -- Time reduces by 3% each time timeRetained is applied to it
       startTime = 30,
       timeRetained = 0.97
    }
