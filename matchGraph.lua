@@ -111,18 +111,26 @@ function matchGraph.shuffleGraph()
       b = graph:get_b(),
       n = graph:get_n()
    }
+   local new
 
-   -- Grab new parameters
-   for k, v in pairs(polarPars) do
-      local new = math.random(playerGraph.minLimits[k], playerGraph.maxLimits[k] - 1)
+   -- Ensure a is not 0 so graph is visable
+   new = math.random(playerGraph.minLimits.a, playerGraph.maxLimits.a)
+   if new >= 0 then
+      new = new + 1
+   end
+   polarPars.a = new
+
+   -- Get new parameters for b and n
+   for _, k in pairs({"b", "n"}) do
+      new = math.random(playerGraph.minLimits[k], playerGraph.maxLimits[k] - 1)
       -- Ensure that new value actually changes.
-      if new > v then
+      if new > polarPars[k] then
 	 new = new + 1
       end
 
       polarPars[k] = new
    end
-
+   --[[
    -- Ensure at least one of the parameters is not 0 so the graph is visible
    if polarPars.a == 0 and polarPars.b == 0 and polarPars.n == 0 then
       local k
@@ -136,6 +144,7 @@ function matchGraph.shuffleGraph()
 	 polarPars[k] = polarPars[k] + 1
       end
    end
+   --]]
 
    -- Apply new parameters
    for k, v in pairs(polarPars) do
