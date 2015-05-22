@@ -45,6 +45,19 @@ local doDecr = playerGraph.doDecr
 local maxLimits = playerGraph.maxLimits
 local minLimits = playerGraph.minLimits
 
+-- Change graph transformation variables
+graph.maxSpeeds = {
+   a = 20,
+   b = 20,
+   n = 12
+}
+
+graph.accels = {
+   a = 45,
+   b = 45,
+   n = 24
+}
+
 function playerGraph.reload()
    -- Set all parameters to zero
    for _, par in pairs({"a", "b", "n"}) do
@@ -84,9 +97,11 @@ function playerGraph.setIncr(k, bool)
    doIncr[k] = bool
    if bool then
       doDecr[k] = false
+      graph:cancelSnap(k)
    elseif love.keyboard.isDown(km["decr_"..k]) then
       doDecr[k] = true
-   else
+      graph:cancelSnap(k)
+   elseif k == "n" then
       playerGraph.setSnap(k)
    end
 end
@@ -95,9 +110,11 @@ function playerGraph.setDecr(k, bool)
    doDecr[k] = bool
    if bool then
       doIncr[k] = false
+      graph:cancelSnap(k)
    elseif love.keyboard.isDown(km["incr_"..k]) then
       doIncr[k] = true
-   else
+      graph:cancelSnap(k)
+   elseif k == "n" then
       playerGraph.setSnap(k)
    end
 end
