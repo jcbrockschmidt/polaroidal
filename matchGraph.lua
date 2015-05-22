@@ -130,21 +130,6 @@ function matchGraph.shuffleGraph()
 
       polarPars[k] = new
    end
-   --[[
-   -- Ensure at least one of the parameters is not 0 so the graph is visible
-   if polarPars.a == 0 and polarPars.b == 0 and polarPars.n == 0 then
-      local k
-      local rand = math.random(3)
-      if     rand == 1 then k = "a"
-      elseif rand == 2 then k = "b"
-      else                  k = "n" end
-
-      polarPars[k] = math.random(playerGraph.minLimits[k], playerGraph.maxLimits[k] - 1)
-      if polarPars[k] >= 0 then
-	 polarPars[k] = polarPars[k] + 1
-      end
-   end
-   --]]
 
    -- Apply new parameters
    for k, v in pairs(polarPars) do
