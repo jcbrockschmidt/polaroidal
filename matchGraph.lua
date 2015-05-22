@@ -12,8 +12,8 @@ matchGraph.graph = polar.new(
 -- between each of the player's parameters must be less than or equal to it's
 -- "fuzz," respectively.
 matchGraph.fuzz = {
-   a = .2,
-   b = .3,
+   a = .5,
+   b = .5,
    n = .2,
 }
 
