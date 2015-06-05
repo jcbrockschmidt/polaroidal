@@ -1,4 +1,5 @@
 -- State for displaying a player's score after a game has ended
+--DOIT: add exit effect
 
 states.dispScore = {
    colors = {
@@ -14,13 +15,15 @@ states.dispScore = {
    msg3 = "to go to the main menu...",
 
    graph = polar.new(
-      love.graphics.getWidth() / 2 - 5,
-      love.graphics.getHeight() / 2 - 5,
+      0, 0,
       0, 27,
-      0, 0, 0
+      0, 0.2, 11
    ),
-   graphThickness = 5
+   graphThickness = 5,
+   graphRadSpeed = 0.5
 }
+
+local graph = states.dispScore.graph
 
 function states.dispScore.load()
    states.dispScore.score_y =
@@ -39,6 +42,12 @@ function states.dispScore.load()
    states.dispScore.line_w = fonts.dispScore_msg:getWidth(states.dispScore.msg) * 0.9
    states.dispScore.line_h = 5
 
+   graph:set_x(love.graphics.getWidth() / 2)
+   graph:set_y(
+      states.dispScore.score_y +
+	 fonts.dispScore_score:getHeight("0") / 2 - 4
+   )
+
    states.dispScore.msg2_x = 
       (love.graphics.getWidth() -
 	  fonts.dispScore_msg2:getWidth(states.dispScore.msg2)) / 2
@@ -53,21 +62,51 @@ function states.dispScore.load()
 end
 
 function states.dispScore.reload()
-   states.dispScore.score_x =
-      (love.graphics.getWidth() -
-	  fonts.dispScore_score:getWidth(tostring(score.score))) / 2
+   -- Account for different sizes of font number to better center displayed score
+   local w = 0
+   local x = love.graphics.getWidth() / 2
+   local digits = {}
+   for d in string.gmatch(tostring(score.score), "%d") do
+      table.insert(digits, d)
+   end
+   for d_i, d in ipairs(digits) do
+      local add_w = fonts.dispScore_score:getWidth(d)
+      w = w + add_w
+      x = x - add_w / 2
+   end
+   if digits[1] == "1" then
+      -- 1's have some extra space on the left side.
+      -- If the first digit is a 1, ignore this space.
+      w = w - 15
+      x = x - 7.5
+   end
+
+   -- All number have some extra space on their right side.
+   -- Ignore this space on the last digit.
+   w = w - 4
+   x = x + 4
+
+   states.dispScore.score_x = x
 
    states.dispScore.graph:set_a(0)
    states.dispScore.graph:snapTo("a", 3)
+   states.dispScore.graph:set_n(math.random(1, 10))
 end
 
 function states.dispScore.update(dt)
-   states.dispScore.graph:update(dt)
-   states.dispScore.graph:calcPoints()
+   graph:update(dt)
+   graph:calcPoints()
+   -- Rotate graph
+   local newRads = graph:get_rads() + states.dispScore.graphRadSpeed * dt
+   while newRads >= 2*math.pi do
+      newRads = newRads - 2*math.pi
+   end
+   print(newRads)
+   graph:set_rads(newRads)
 end
 
 function states.dispScore.exit(func, ...)
-   --DOIT
+   --DOIT: Visual effects
    -- Call func() after
    local arg = {...}
    func(unpack(arg))
