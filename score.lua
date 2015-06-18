@@ -1,3 +1,5 @@
+require "library"
+
 score = {
    numColor = {0, 0, 255, 255},
    x = 50,
@@ -29,7 +31,7 @@ end
 
 function score.update(dt)
    if line.w ~= line.w_goal then
-      if (3*line.speed*line.speed) / (2*line.accel) < math.abs(line.w_goal - line.w) then
+      if predictIncr(line.speed, line.accel) < math.abs(line.w_goal - line.w) then
 	 if line.w < line.w_goal then
 	    line.speed = math.min(line.maxSpeed, line.speed + line.accel*dt)
 	 else
