@@ -1,3 +1,5 @@
+--DOIT: add effect for when graph gets matched
+
 matchGraph = {}
 
 matchGraph.graph = polar.new(

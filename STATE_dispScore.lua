@@ -101,7 +101,6 @@ function states.dispScore.update(dt)
    while newRads >= 2*math.pi do
       newRads = newRads - 2*math.pi
    end
-   print(newRads)
    graph:set_rads(newRads)
 end
 

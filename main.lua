@@ -34,7 +34,5 @@ function love.load()
    states.menu.load()
    states.game.load()
 
-   --load_state("menu")
-   score.score = 11
-   load_state("dispScore")
+   load_state("menu")
 end
