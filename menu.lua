@@ -1,3 +1,9 @@
+--DOIT:
+-- * Add effect for when menu buttons come in and come out when a tab is
+--   opened or close.
+-- * Fix menu going out. Buttons and dividers just disappear
+--   without a transition.
+
 menu = {}
 
 function menu.load()
@@ -13,60 +19,76 @@ function menu.load()
    menu.buttonSets[1]:addButton(
       "Play",
       function()
-	 menu.curButtonSet = menu.buttonSets[2]
-	 menu.curButtonSet:selectButton(1)
+	 menu.waitForMenu(
+	    function ()
+	       menu.curButtonSet = menu.buttonSets[2]
+	       menu.curButtonSet:selectButton(1)
+	       menu.curButtonSet:comeIn()
+	    end )
       end )
    menu.buttonSets[1]:addButton("Options", function() return end)
    menu.buttonSets[1]:addButton("Credits", function() return end)
    menu.buttonSets[1]:addButton(
       "Exit",
       function()
-	 menu.close(love.event.quit)
+	 menu.waitForMenu(menu.close, {love.event.quit})
       end )
 
    -- Gamemodes
    menu.buttonSets[2]:addButton(
       "Challenge",
       function()
-	 menu.close(game.new, "challenge")
+	 menu.waitForMenu(menu.close, {game.new, "challenge"})
       end )
    menu.buttonSets[2]:addButton(
       "Timed",
       function()
-	 menu.curButtonSet = menu.buttonSets[3]
-	 menu.curButtonSet:selectButton(1)
+	 menu.waitForMenu(
+	    function()
+	       menu.curButtonSet = menu.buttonSets[3]
+	       menu.curButtonSet:selectButton(1)
+	       menu.curButtonSet:comeIn()
+	    end )
       end )
    menu.buttonSets[2]:addButton(
       "Casual",
       function()
-	 menu.close(game.new, "casual")
+	 menu.waitForMenu(menu.close, {game.new, "casual"})
       end )
    menu.buttonSets[2]:setBack(
       function()
-	 menu.curButtonSet = menu.buttonSets[1]
-	 menu.curButtonSet:selectButton(1)
+	 menu.waitForMenu(
+	    function()
+	       menu.curButtonSet = menu.buttonSets[1]
+	       menu.curButtonSet:selectButton(1)
+	       menu.curButtonSet:comeIn()
+	    end )
       end )
 
    -- Timed games
    menu.buttonSets[3]:addButton(
       "5 minutes",
       function()
-	 menu.close(game.new, "timed", 300)
+	 menu.waitForMenu(menu.close, {game.new, "timed", 300})
       end )
    menu.buttonSets[3]:addButton(
       "3 minutes",
       function()
-	 menu.close(game.new, "timed", 180)
+	 menu.waitForMenu(menu.close, {game.new, "timed", 180})
       end )
    menu.buttonSets[3]:addButton(
       "1 minute",
       function()
-	 menu.close(game.new, "timed", 60)
+	 menu.waitForMenu(menu.close, {game.new, "timed", 60})
       end )
    menu.buttonSets[3]:setBack(
       function()
-	 menu.curButtonSet = menu.buttonSets[2]
-	 menu.curButtonSet:selectButton(2)
+	 menu.waitForMenu(
+	    function()
+	       menu.curButtonSet = menu.buttonSets[2]
+	       menu.curButtonSet:selectButton(2)
+	       menu.curButtonSet:comeIn()
+	    end )
       end )
 
    menu.curButtonSet = menu.buttonSets[1]
@@ -114,6 +136,7 @@ function menu.load()
 end
 
 function menu.reload()
+   menu.waitForMenu_bool = false
    menu.isClosing = false
    menu.canSelect = true
    for _, par in pairs({"a", "b", "n"}) do
@@ -127,6 +150,15 @@ function menu.reload()
    menu.graphs[1]:set_rads(math.pi/4)
    menu.graphs[2]:set_rads(0)
    menu.shuffleGraphPoints()
+
+   menu.curButtonSet:comeIn()
+end
+
+function menu.waitForMenu(func, args)
+   menu.curButtonSet:goOut()
+   menu.waitForMenu_bool = true
+   menu.waitForMenu_func = func
+   menu.waitForMenu_args = args
 end
 
 function menu.shuffleGraphPoints()
@@ -162,6 +194,14 @@ function menu.shuffleGraphPoints()
 end
 
 function menu.update(dt)
+   menu.curButtonSet:update(dt)
+   if menu.waitForMenu_bool then
+      if menu.curButtonSet.isOut then
+	 menu.waitForMenu_bool = false
+	 menu.waitForMenu_func(unpack(menu.waitForMenu_args or {}))
+      end
+   end
+
    for k, graph in ipairs(menu.graphs) do
       local rads = graph:get_rads()
 
@@ -287,16 +327,26 @@ buttonSet = {
    btn_h = 0, --> Will be set in menu.load()
    div_h = 4,
    div_w = 150,
-   spacer_w = 8,
    spacer_h = 6,
    selectColor = {0, 0, 255, 255},
    regularColor = {200, 200, 255, 255},
    divColor = {100, 100, 255, 255},
 
+   btn_x_goal = 28,
+   div_x_goal = 20,
+   inOutAccel = 700,
+   seperate_x = 50,
+
    new = function()
       local obj = {
 	 buttons = {},
-	 curBtn = 0
+	 curBtn = 0,
+	 divs_x = {},
+	 isIn = false,
+	 isOut = true,
+	 comingIn = false,
+	 goingOut = false,
+	 resting_x = 0
       }
       setmetatable(obj, buttonSet_mt)
 
@@ -306,11 +356,59 @@ buttonSet = {
    addButton = function(self, text, func)
       table.insert(
 	 self.buttons,
-	 {
-	    text = text,
-	    func = func,
-	 }
+	 {text = text, func = func, speed = 0}
       )
+      local bNum = #self.buttons
+      local w = fonts.menu:getWidth(text)
+      if bNum > 1 then
+	 -- Add divider before new button.
+	 table.insert(
+	    self.divs_x,
+	    {x = self.div_x_goal, speed = 0}
+	 )
+	 w = math.max(
+	    self.div_x_goal + self.seperate_x, --New divider
+	    w --New button.
+	 )
+      end
+
+      -- Determine if resting position for button set needs to be changed
+      local rt_x = self.resting_x - self.seperate_x * (bNum-1)*2 + w
+      local changedRest = false
+      if rt_x > 0 then
+	 self.resting_x = self.resting_x - rt_x
+	 changedRest = true
+      end
+
+      if self.isOut or self.goingOut then
+	 if changedRest then
+	    -- Update all resting positions
+	    for bNum, btn in ipairs(self.buttons) do
+	       btn.x = self.resting_x - self.seperate_x * (bNum-1)*2
+	       if bNum < #self.buttons then
+		  self.divs_x[bNum].x = self.resting_x - self.seperate_x * (bNum*2-1)
+	       end
+	    end
+	 else
+	    -- Just update new divider's (if exists) and new button's
+	    -- resting positions
+	    if bNum > 1 then
+	       self.divs_x[bNum-1].x =
+		  self.resting_x - self.seperate_x * (bNum*2-3)
+	    end
+	    self.buttons[bNum].x =
+	       self.resting_x - self.seperate_x * (bNum-1)*2
+	 end
+      elseif self.isIn or self.comingIn then
+	 -- Change new divider's (if exists) and new button's positions
+	 -- to their optimals/goals
+	 local bNum = #self.buttons
+	 if bNum > 1 then
+	    self.divs_x[bNum-1].x = self.div_x_goal
+	 end
+	 self.buttons[bNum].x = self_btn_x_goal
+      end
+      --DOIT: Determine new x-coordinates of divider and buttons
    end,
 
    selectButton = function(self, bNum)
@@ -339,11 +437,105 @@ buttonSet = {
       menu.shuffleGraphPoints()
    end,
 
+   comeIn = function(self)
+      if self.isIn then
+	 return
+      end
+      self.isIn = false
+      self.isOut = false
+      self.goingOut = false
+      self.comingIn = true
+   end,
+
+   goOut = function(self)
+      if self.isOut then
+	 return
+      end
+      self.isIn = false
+      self.comingIn = false
+      self.isOut = false
+      self.goingOut = true
+   end,
+
+   update = function(self, dt)
+      if self.comingIn or self.goingOut then
+	 local isDone = true
+	 local accel
+	 local btn_x_goal
+	 local div_x_goal
+	 local seperate_x
+	 if self.comingIn then
+	    accel = self.inOutAccel
+	    btn_x_goal = self.btn_x_goal
+	    div_x_goal = self.div_x_goal
+	    seperate_x = 0
+	 elseif self.goingOut then
+	    accel = -self.inOutAccel
+	    btn_x_goal = self.resting_x
+	    div_x_goal = self.resting_x
+	    seperate_x = self.seperate_x
+	 end
+	 for bNum, btn in ipairs(self.buttons) do
+	    local goal = btn_x_goal - seperate_x * (bNum-1)*2
+	    if btn.x ~= goal then
+	       if math.abs(predictIncr(btn.speed, accel)) <
+	       math.abs(goal - btn.x) then
+		  btn.speed = btn.speed + accel*dt
+	       else
+		  btn.speed = btn.speed - accel*dt
+	       end
+	       btn.x = btn.x + btn.speed*dt
+	       if (self.comingIn and btn.x >= goal) or
+	       (self.goingOut and btn.x <= goal) then
+		  btn.x = goal
+		  btn.speed = 0
+	       else
+		  isDone = false
+	       end
+	    end
+	    if bNum < #self.buttons then
+	       local goal = div_x_goal - seperate_x * (bNum*2-1)
+	       div = self.divs_x[bNum]
+	       if div.x ~= goal then
+		  if math.abs(predictIncr(div.speed, accel)) <
+		  math.abs(goal - div.x) then
+		     div.speed = div.speed + accel*dt
+		  else
+		     div.speed = div.speed - accel*dt
+		  end
+		  div.x = div.x + div.speed*dt
+		  if (self.comingIn and div.x >= goal) or
+		  (self.goingOut and div.x <= goal) then
+		     div.x = goal
+		     div.speed = 0
+		  else
+		     isDone = false
+		  end
+	       end
+	    end
+	 end
+	 if isDone then
+	    if self.comingIn then
+	       self.comingIn = false
+	       self.isIn = true
+	    elseif self.goingOut then
+	       self.goingOut = false
+	       self.isOut = true
+	    end
+	 end
+      end
+   end,
+
    draw = function(self)
+      if self.isOut then
+	 -- Don't draw anything if it's all supposed to be off screen
+	 return
+      end
+
       love.graphics.setFont(fonts.menu)
-      local x = self.dx + self.spacer_w
       local y = self.dy
       for bNum, btn in ipairs(self.buttons) do
+	 -- Draw button
 	 if bNum == self.curBtn then
 	    love.graphics.setColor(self.selectColor)
 	    love.graphics.print(
@@ -355,14 +547,16 @@ buttonSet = {
 	 end
 	 love.graphics.print(
 	    btn.text,
-	    x, y
+	    btn.x, y
 	 )
+
 	 if bNum < #self.buttons then
+	    -- Draw dividing lines
 	    y = y + self.btn_h
 	    love.graphics.setColor(self.divColor)
 	    love.graphics.rectangle(
 	       "fill",
-	       self.dx, y,
+	       self.divs_x[bNum].x, y,
 	       self.div_w, self.div_h
 	    )
 	    y = y + self.div_h + self.spacer_h
