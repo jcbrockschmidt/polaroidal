@@ -1,8 +1,5 @@
 --DOIT:
--- * Add effect for when menu buttons come in and come out when a tab is
---   opened or close.
--- * Fix menu going out. Buttons and dividers just disappear
---   without a transition.
+-- * User can backspace while a menu is going out to bring it back in.
 
 menu = {}
 
@@ -334,14 +331,14 @@ buttonSet = {
 
    btn_x_goal = 28,
    div_x_goal = 20,
-   inOutAccel = 700,
-   seperate_x = 50,
+   inOutAccel = 1500,
+   delayIncr = 0.1,
 
    new = function()
       local obj = {
 	 buttons = {},
 	 curBtn = 0,
-	 divs_x = {},
+	 divs = {},
 	 isIn = false,
 	 isOut = true,
 	 comingIn = false,
@@ -358,57 +355,38 @@ buttonSet = {
 	 self.buttons,
 	 {text = text, func = func, speed = 0}
       )
-      local bNum = #self.buttons
       local w = fonts.menu:getWidth(text)
-      if bNum > 1 then
-	 -- Add divider before new button.
+      if #self.buttons > 1 then
 	 table.insert(
-	    self.divs_x,
-	    {x = self.div_x_goal, speed = 0}
+	    self.divs,
+	    { speed = 0 }
 	 )
-	 w = math.max(
-	    self.div_x_goal + self.seperate_x, --New divider
-	    w --New button.
-	 )
+	 w = math.max(w, self.div_w)
       end
-
-      -- Determine if resting position for button set needs to be changed
-      local rt_x = self.resting_x - self.seperate_x * (bNum-1)*2 + w
-      local changedRest = false
-      if rt_x > 0 then
-	 self.resting_x = self.resting_x - rt_x
-	 changedRest = true
-      end
-
-      if self.isOut or self.goingOut then
-	 if changedRest then
-	    -- Update all resting positions
-	    for bNum, btn in ipairs(self.buttons) do
-	       btn.x = self.resting_x - self.seperate_x * (bNum-1)*2
-	       if bNum < #self.buttons then
-		  self.divs_x[bNum].x = self.resting_x - self.seperate_x * (bNum*2-1)
-	       end
+      -- Determine if resting position needs to be changed
+      local bNum = #self.buttons
+      if -w < self.resting_x then
+	 self.resting_x = -w
+	 if self.isOut then
+	    for _, btn in ipairs(self.buttons) do
+	       btn.x = self.resting_x
+	    end
+	    for _, div in ipairs(self.divs) do
+	       div.x = self.resting_x
 	    end
 	 else
-	    -- Just update new divider's (if exists) and new button's
-	    -- resting positions
-	    if bNum > 1 then
-	       self.divs_x[bNum-1].x =
-		  self.resting_x - self.seperate_x * (bNum*2-3)
-	    end
-	    self.buttons[bNum].x =
-	       self.resting_x - self.seperate_x * (bNum-1)*2
+	    self.divs[bNum-1].x = self.div_x_goal
+	    self.buttons[bNum].x = self.btn_x_goal
 	 end
-      elseif self.isIn or self.comingIn then
-	 -- Change new divider's (if exists) and new button's positions
-	 -- to their optimals/goals
-	 local bNum = #self.buttons
-	 if bNum > 1 then
-	    self.divs_x[bNum-1].x = self.div_x_goal
+      else
+	 if self.isOut or self.goingOut then
+	    self.divs[bNum-1].x = self.resting_x
+	    self.buttons[bNum].x = self.resting_x
+	 else
+	    self.divs[bNum].x = self.div_x_goal
+	    self.buttons[bNum].x = self.btn_x_goal
 	 end
-	 self.buttons[bNum].x = self_btn_x_goal
       end
-      --DOIT: Determine new x-coordinates of divider and buttons
    end,
 
    selectButton = function(self, bNum)
@@ -437,6 +415,15 @@ buttonSet = {
       menu.shuffleGraphPoints()
    end,
 
+   _delayElems = function(self)
+      for bNum, btn in ipairs(self.buttons) do
+	 btn.dly = self.delayIncr * (bNum-1)*2
+      end
+      for dNum, div in ipairs(self.divs) do
+	 div.dly = self.delayIncr * (dNum*2-1)
+      end
+   end,
+
    comeIn = function(self)
       if self.isIn then
 	 return
@@ -445,6 +432,7 @@ buttonSet = {
       self.isOut = false
       self.goingOut = false
       self.comingIn = true
+      self:_delayElems()
    end,
 
    goOut = function(self)
@@ -455,63 +443,65 @@ buttonSet = {
       self.comingIn = false
       self.isOut = false
       self.goingOut = true
+      self:_delayElems()
+   end,
+
+   -- Updates an element. Assumes menu is either coming in or going out.
+   -- @param dt  Change in time
+   -- @param elem  Element object/table
+   -- @return  True if element is fully update. False if element is not.
+   _updateElem = function(self, elem, dt, goal)
+      if elem.dly > 0 then
+	 elem.dly = elem.dly - dt
+	 if elem.dly > 0 then
+	    if elem.speed > 0 then
+	       elem.speed = math.max(elem.speed - self.inOutAccel*dt, 0)
+	    elseif elem.speed < 0 then
+	       elem.speed = math.min(elem.speed + self.inOutAccel*dt, 0)
+	    end
+	    return false
+	 else
+	    elem.dly = 0
+	 end
+      end
+      if elem.x ~= goal then
+	 if self.comingIn then
+	    if math.abs(predictIncr(elem.speed, self.inOutAccel)) <
+	    math.abs(goal - elem.x) then
+	       elem.speed = elem.speed + self.inOutAccel*dt
+	    else
+	       elem.speed = elem.speed - self.inOutAccel*dt
+	    end
+	 elseif self.goingOut then
+	    elem.speed = elem.speed - self.inOutAccel*dt
+	 end
+	 elem.x = elem.x + elem.speed*dt
+	 if (self.comingIn and elem.x >= goal) or
+	 (self.goingOut and elem.x <= goal) then
+	    elem.x = goal
+	    elem.speed = 0
+	    return true
+	 else
+	    return false
+	 end
+      else
+	 return true
+      end
    end,
 
    update = function(self, dt)
       if self.comingIn or self.goingOut then
 	 local isDone = true
-	 local accel
-	 local btn_x_goal
-	 local div_x_goal
-	 local seperate_x
-	 if self.comingIn then
-	    accel = self.inOutAccel
-	    btn_x_goal = self.btn_x_goal
-	    div_x_goal = self.div_x_goal
-	    seperate_x = 0
-	 elseif self.goingOut then
-	    accel = -self.inOutAccel
-	    btn_x_goal = self.resting_x
-	    div_x_goal = self.resting_x
-	    seperate_x = self.seperate_x
-	 end
+	 local goal = self.comingIn and self.btn_x_goal or self.resting_x
 	 for bNum, btn in ipairs(self.buttons) do
-	    local goal = btn_x_goal - seperate_x * (bNum-1)*2
-	    if btn.x ~= goal then
-	       if math.abs(predictIncr(btn.speed, accel)) <
-	       math.abs(goal - btn.x) then
-		  btn.speed = btn.speed + accel*dt
-	       else
-		  btn.speed = btn.speed - accel*dt
-	       end
-	       btn.x = btn.x + btn.speed*dt
-	       if (self.comingIn and btn.x >= goal) or
-	       (self.goingOut and btn.x <= goal) then
-		  btn.x = goal
-		  btn.speed = 0
-	       else
-		  isDone = false
-	       end
+	    if not self:_updateElem(btn, dt, goal) then
+	       isDone = false
 	    end
-	    if bNum < #self.buttons then
-	       local goal = div_x_goal - seperate_x * (bNum*2-1)
-	       div = self.divs_x[bNum]
-	       if div.x ~= goal then
-		  if math.abs(predictIncr(div.speed, accel)) <
-		  math.abs(goal - div.x) then
-		     div.speed = div.speed + accel*dt
-		  else
-		     div.speed = div.speed - accel*dt
-		  end
-		  div.x = div.x + div.speed*dt
-		  if (self.comingIn and div.x >= goal) or
-		  (self.goingOut and div.x <= goal) then
-		     div.x = goal
-		     div.speed = 0
-		  else
-		     isDone = false
-		  end
-	       end
+	 end
+	 local goal = self.comingIn and self.div_x_goal or self.resting_x
+	 for dNum, div in ipairs(self.divs) do
+	    if not self:_updateElem(div, dt, goal) then
+	       isDone = false
 	    end
 	 end
 	 if isDone then
@@ -556,7 +546,7 @@ buttonSet = {
 	    love.graphics.setColor(self.divColor)
 	    love.graphics.rectangle(
 	       "fill",
-	       self.divs_x[bNum].x, y,
+	       self.divs[bNum].x, y,
 	       self.div_w, self.div_h
 	    )
 	    y = y + self.div_h + self.spacer_h
