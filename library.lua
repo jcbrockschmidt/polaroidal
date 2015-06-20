@@ -15,5 +15,9 @@ end
 -- @param speed  Current increase-per-second rate.
 -- @param decel  Deceleration-per-second rate.
 function predictIncr(speed, decel)
-   return (speed*speed) / decel
+   local incr = (speed*speed) / decel
+   if speed < 0 then
+      incr = -incr
+   end
+   return incr
 end
