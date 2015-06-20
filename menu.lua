@@ -1,5 +1,6 @@
 --DOIT:
--- * User can backspace while a menu is going out to bring it back in.
+-- * Menu elements continue toward goal until new goal is set.
+--   Elements will probably have to store their own goal.
 
 menu = {}
 
@@ -268,27 +269,35 @@ function menu.keypressed(key)
       return
    end
 
-   if key == "w" or key == "i" or key == "up" then
-      newBtn = menu.curButtonSet.curBtn - 1
-      if newBtn < 1 then
-	 newBtn = #menu.curButtonSet.buttons
+   if menu.waitForMenu_bool then
+      if key == "backspace" or key == "escape" or key == "b" or
+      key == "a" or key == "j" or key == "left" then
+	 menu.waitForMenu_bool = false
+	 menu.curButtonSet:comeIn()
       end
-      menu.curButtonSet:selectButton(newBtn)
+   else
+      if key == "w" or key == "i" or key == "up" then
+	 newBtn = menu.curButtonSet.curBtn - 1
+	 if newBtn < 1 then
+	    newBtn = #menu.curButtonSet.buttons
+	 end
+	 menu.curButtonSet:selectButton(newBtn)
 
-   elseif key == "s" or key == "k" or key == "down" then
-      newBtn = menu.curButtonSet.curBtn + 1
-      if newBtn > #menu.curButtonSet.buttons then
-	 newBtn = 1
+      elseif key == "s" or key == "k" or key == "down" then
+	 newBtn = menu.curButtonSet.curBtn + 1
+	 if newBtn > #menu.curButtonSet.buttons then
+	    newBtn = 1
+	 end
+	 menu.curButtonSet:selectButton(newBtn)
+
+      elseif key == " " or key == "return" or
+      key == "d" or key == "l" or key == "right" then
+	 menu.curButtonSet:activate()
+
+      elseif key == "backspace" or key == "escape" or key == "b" or
+      key == "a" or key == "j" or key == "left" then
+	 menu.curButtonSet:goBack()
       end
-      menu.curButtonSet:selectButton(newBtn)
-
-   elseif key == " " or key == "return" or
-   key == "d" or key == "l" or key == "right" then
-      menu.curButtonSet:activate()
-
-   elseif key == "backspace" or key == "escape" or key == "b" or
-   key == "a" or key == "j" or key == "left" then
-      menu.curButtonSet:goBack()
    end
 end
 
@@ -466,11 +475,11 @@ buttonSet = {
       end
       if elem.x ~= goal then
 	 if self.comingIn then
-	    if math.abs(predictIncr(elem.speed, self.inOutAccel)) <
-	    math.abs(goal - elem.x) then
+	    if predictIncr(elem.speed, self.inOutAccel) < goal - elem.x then
 	       elem.speed = elem.speed + self.inOutAccel*dt
 	    else
 	       elem.speed = elem.speed - self.inOutAccel*dt
+	       print(predictIncr(elem.speed, self.inOutAccel), goal - elem.x)
 	    end
 	 elseif self.goingOut then
 	    elem.speed = elem.speed - self.inOutAccel*dt
@@ -495,12 +504,14 @@ buttonSet = {
 	 local goal = self.comingIn and self.btn_x_goal or self.resting_x
 	 for bNum, btn in ipairs(self.buttons) do
 	    if not self:_updateElem(btn, dt, goal) then
+	       print("button:\n\tx: ",btn.x.."\n\tdly: ",btn.dly)
 	       isDone = false
 	    end
 	 end
 	 local goal = self.comingIn and self.div_x_goal or self.resting_x
 	 for dNum, div in ipairs(self.divs) do
 	    if not self:_updateElem(div, dt, goal) then
+	       print("divider: "..dt)
 	       isDone = false
 	    end
 	 end
