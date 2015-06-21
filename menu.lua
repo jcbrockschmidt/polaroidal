@@ -7,10 +7,35 @@ menu = {}
 function menu.load()
    buttonSet.btn_h = fonts.menu:getHeight(" ") + 6
 
+   menu.highscores = {
+      rect = {
+	 color = {200, 200, 200, 255},
+	 y = 20,
+	 w = 400,
+	 h = love.graphics.getHeight() - 40,
+	 x_out = love.graphics.getWidth(),
+	 x_in = love.graphics.getWidth() - 420,
+	 x_accel = 1500
+      },
+      comeIn = function()
+	 menu.highscores.isIn = false
+	 menu.highscores.comingIn = true
+	 menu.highscores.goingOut = false
+	 menu.highscores.update_bool = true
+	 menu.highscores.draw_bool = true
+	 menu.curButtonSet = false
+      end,
+      goOut = function()
+	 menu.highscores.isIn = false
+	 menu.highscores.comingIn = false
+	 menu.highscores.goingOut = true
+      end
+   }
+
    menu.buttonSets = {
-      buttonSet.new(),
-      buttonSet.new(),
-      buttonSet.new()
+      buttonSet.new(), --Main Menu
+      buttonSet.new(), --Gamemodes
+      buttonSet.new()  --Timed Gamemodes
    }
 
    -- Start menu
@@ -23,6 +48,11 @@ function menu.load()
 	       menu.curButtonSet:selectButton(1)
 	       menu.curButtonSet:comeIn()
 	    end )
+      end )
+   menu.buttonSets[1]:addButton(
+      "Highscores",
+      function()
+	 menu.waitForMenu(menu.highscores.comeIn)
       end )
    menu.buttonSets[1]:addButton("Options", function() return end)
    menu.buttonSets[1]:addButton("Credits", function() return end)
@@ -65,14 +95,14 @@ function menu.load()
 
    -- Timed games
    menu.buttonSets[3]:addButton(
+      "15 minutes",
+      function()
+	 menu.waitForMenu(menu.close, {game.new, "timed", 900})
+      end )
+   menu.buttonSets[3]:addButton(
       "5 minutes",
       function()
 	 menu.waitForMenu(menu.close, {game.new, "timed", 300})
-      end )
-   menu.buttonSets[3]:addButton(
-      "3 minutes",
-      function()
-	 menu.waitForMenu(menu.close, {game.new, "timed", 180})
       end )
    menu.buttonSets[3]:addButton(
       "1 minute",
@@ -130,6 +160,39 @@ function menu.load()
    -- True if the graph has closed, false otherwise
    menu.closed = {{}, {}}
 
+   menu.keyCheck = {
+      up = function(key)
+	 if key == "w" or key == "i" or key == "up" then
+	    return true
+	 else
+	    return false
+	 end
+      end,
+      down = function(key)
+	 if key == "s" or key == "k" or key == "down" then
+	    return true
+	 else
+	    return false
+	 end
+      end,
+      enter = function(key)
+	 if key == " " or key == "return" or
+	 key == "d" or key == "l" or key == "right" then
+	    return true
+	 else
+	    return false
+	 end
+      end,
+      back = function(key)
+	 if key == "backspace" or key == "escape" or key == "b" or
+	 key == "a" or key == "j" or key == "left" then
+	    return true
+	 else
+	    return false
+	 end
+      end
+   }
+
    menu.reload()
 end
 
@@ -148,6 +211,14 @@ function menu.reload()
    menu.graphs[1]:set_rads(math.pi/4)
    menu.graphs[2]:set_rads(0)
    menu.shuffleGraphPoints()
+
+   menu.highscores.update_bool = false
+   menu.highscores.draw_bool = false
+   menu.highscores.isIn = false
+   menu.highscores.comingIn = false
+   menu.highscores.goingOut = false
+   menu.highscores.rect.x = menu.highscores.rect.x_out
+   menu.highscores.rect.x_speed = 0
 
    menu.curButtonSet:comeIn()
 end
@@ -192,11 +263,52 @@ function menu.shuffleGraphPoints()
 end
 
 function menu.update(dt)
-   menu.curButtonSet:update(dt)
+   if menu.curButtonSet then
+      menu.curButtonSet:update(dt)
+   end
+
    if menu.waitForMenu_bool then
       if menu.curButtonSet.isOut then
 	 menu.waitForMenu_bool = false
 	 menu.waitForMenu_func(unpack(menu.waitForMenu_args or {}))
+      end
+   end
+
+   if menu.highscores.update_bool then
+      if menu.highscores.comingIn then
+	 print("COMING IN! ",dt)
+	 local rect = menu.highscores.rect
+	 if predictIncr(rect.x_speed, rect.x_accel) > rect.x_in - rect.x then
+	    print("\taccel")
+	    rect.x_speed = rect.x_speed - rect.x_accel*dt
+	 else
+	    print("\tdecel")
+	    rect.x_speed = rect.x_speed + rect.x_accel*dt
+	 end
+	 rect.x = rect.x + rect.x_speed*dt
+	 if rect.x <= rect.x_in then
+	    rect.x_speed = 0
+	    rect.x = rect.x_in
+	    menu.highscores.isIn = true
+	    menu.highscores.comingIn = false
+	 end
+      elseif menu.highscores.goingOut then
+	 local rect = menu.highscores.rect
+	 if rect.x < rect.x_out then
+	    rect.x_speed = rect.x_speed + rect.x_accel*dt
+	 end
+	 rect.x = rect.x + rect.x_speed*dt
+	 if rect.x >= rect.x_out then
+	    rect.x_speed = 0
+	    rect.x = rect.x_out
+	    menu.highscores.isIn = false
+	    menu.highscores.goingOut = false
+	    menu.highscores.update_bool = false
+	    menu.highscores.draw_bool = false
+	    menu.curButtonSet = menu.buttonSets[1]
+	    menu.curButtonSet:selectButton(2)
+	    menu.curButtonSet:comeIn()
+	 end
       end
    end
 
@@ -275,27 +387,40 @@ function menu.keypressed(key)
 	 menu.waitForMenu_bool = false
 	 menu.curButtonSet:comeIn()
       end
+
+   elseif menu.highscores.isIn or menu.highscores.comingIn then
+      if menu.keyCheck.up(key) then
+	 
+      elseif menu.keyCheck.down(key) then
+	 
+      elseif menu.keyCheck.back(key) then
+	 menu.highscores.goOut()
+      end
+
+   elseif menu.highscores.goingOut then
+      if menu.keyCheck.back(key) then
+	 menu.highscores.comeIn()
+      end
+
    else
-      if key == "w" or key == "i" or key == "up" then
+      if menu.keyCheck.up(key) then
 	 newBtn = menu.curButtonSet.curBtn - 1
 	 if newBtn < 1 then
 	    newBtn = #menu.curButtonSet.buttons
 	 end
 	 menu.curButtonSet:selectButton(newBtn)
 
-      elseif key == "s" or key == "k" or key == "down" then
+      elseif menu.keyCheck.down(key) then
 	 newBtn = menu.curButtonSet.curBtn + 1
 	 if newBtn > #menu.curButtonSet.buttons then
 	    newBtn = 1
 	 end
 	 menu.curButtonSet:selectButton(newBtn)
 
-      elseif key == " " or key == "return" or
-      key == "d" or key == "l" or key == "right" then
+      elseif menu.keyCheck.enter(key) then
 	 menu.curButtonSet:activate()
 
-      elseif key == "backspace" or key == "escape" or key == "b" or
-      key == "a" or key == "j" or key == "left" then
+      elseif menu.keyCheck.back(key) then
 	 menu.curButtonSet:goBack()
       end
    end
@@ -306,7 +431,20 @@ function menu.draw()
       love.graphics.setColor(menu.graphColors[gNum])
       graph:draw(menu.graphThicknesses[gNum])
    end
-   menu.curButtonSet:draw()
+
+   if menu.curButtonSet then
+      menu.curButtonSet:draw()
+   end
+
+   if menu.highscores.draw_bool then
+      local rect = menu.highscores.rect
+      love.graphics.setColor(rect.color)
+      love.graphics.rectangle(
+	 "fill",
+	 rect.x, rect.y,
+	 rect.w, rect.h
+      )
+   end
 end
 
 -- Does closing effect for menu and calls the given callback (cb) with the
@@ -479,7 +617,6 @@ buttonSet = {
 	       elem.speed = elem.speed + self.inOutAccel*dt
 	    else
 	       elem.speed = elem.speed - self.inOutAccel*dt
-	       print(predictIncr(elem.speed, self.inOutAccel), goal - elem.x)
 	    end
 	 elseif self.goingOut then
 	    elem.speed = elem.speed - self.inOutAccel*dt
@@ -504,14 +641,12 @@ buttonSet = {
 	 local goal = self.comingIn and self.btn_x_goal or self.resting_x
 	 for bNum, btn in ipairs(self.buttons) do
 	    if not self:_updateElem(btn, dt, goal) then
-	       print("button:\n\tx: ",btn.x.."\n\tdly: ",btn.dly)
 	       isDone = false
 	    end
 	 end
 	 local goal = self.comingIn and self.div_x_goal or self.resting_x
 	 for dNum, div in ipairs(self.divs) do
 	    if not self:_updateElem(div, dt, goal) then
-	       print("divider: "..dt)
 	       isDone = false
 	    end
 	 end
