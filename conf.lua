@@ -1,5 +1,5 @@
 function love.conf (c)
-   c.identity = nil
+   c.identity = "polaroidal"
    c.version = "0.9.2"
    c.console = false
    
