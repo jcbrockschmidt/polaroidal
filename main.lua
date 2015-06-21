@@ -2,6 +2,7 @@ function love.load()
    math.randomseed(os.time())
 
    require "game"
+   require "highscores"
    require "library"
    require "polar"
    require "playerGraph"
@@ -32,7 +33,7 @@ function love.load()
 
    states.dispScore.load()
    states.menu.load()
-   states.game.load()
+   states.game.load() 
 
    load_state("menu")
 end
