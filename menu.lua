@@ -95,9 +95,9 @@ function menu.load()
 
    -- Timed games
    menu.buttonSets[3]:addButton(
-      "15 minutes",
+      "1 minutes",
       function()
-	 menu.waitForMenu(menu.close, {game.new, "timed", 900})
+	 menu.waitForMenu(menu.close, {game.new, "timed", 60})
       end )
    menu.buttonSets[3]:addButton(
       "5 minutes",
@@ -105,9 +105,9 @@ function menu.load()
 	 menu.waitForMenu(menu.close, {game.new, "timed", 300})
       end )
    menu.buttonSets[3]:addButton(
-      "1 minute",
+      "15 minute",
       function()
-	 menu.waitForMenu(menu.close, {game.new, "timed", 60})
+	 menu.waitForMenu(menu.close, {game.new, "timed", 900})
       end )
    menu.buttonSets[3]:setBack(
       function()
