@@ -29,6 +29,7 @@ function menu.load()
 	 menu.highscores.isIn = false
 	 menu.highscores.comingIn = false
 	 menu.highscores.goingOut = true
+	 menu.shuffleGraphPoints()
       end
    }
 
