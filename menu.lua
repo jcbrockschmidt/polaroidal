@@ -67,7 +67,7 @@ function menu.load()
    menu.buttonSets[2]:addButton(
       "Challenge",
       function()
-	 menu.waitForMenu(menu.close, {game.new, "challenge"})
+	 menu.waitForMenu(menu.close, {game.new, "Challenge"})
       end )
    menu.buttonSets[2]:addButton(
       "Timed",
@@ -82,7 +82,7 @@ function menu.load()
    menu.buttonSets[2]:addButton(
       "Casual",
       function()
-	 menu.waitForMenu(menu.close, {game.new, "casual"})
+	 menu.waitForMenu(menu.close, {game.new, "Casual"})
       end )
    menu.buttonSets[2]:setBack(
       function()
@@ -96,19 +96,19 @@ function menu.load()
 
    -- Timed games
    menu.buttonSets[3]:addButton(
-      "1 minutes",
+      "1 minute",
       function()
-	 menu.waitForMenu(menu.close, {game.new, "timed", 60})
+	 menu.waitForMenu(menu.close, {game.new, "1 minute"})
       end )
    menu.buttonSets[3]:addButton(
       "5 minutes",
       function()
-	 menu.waitForMenu(menu.close, {game.new, "timed", 300})
+	 menu.waitForMenu(menu.close, {game.new, "5 minutes"})
       end )
    menu.buttonSets[3]:addButton(
-      "15 minute",
+      "15 minutes",
       function()
-	 menu.waitForMenu(menu.close, {game.new, "timed", 900})
+	 menu.waitForMenu(menu.close, {game.new, "15 minutes"})
       end )
    menu.buttonSets[3]:setBack(
       function()

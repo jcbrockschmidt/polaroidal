@@ -41,25 +41,31 @@ end
 --  "challenge"
 --  "timed"
 --  "casual"
-function game.new(mode, ...)
-   local arg = {...}
-
+function game.new(mode)
    pause = false
    load_state("game")
-   if mode == "timed" then
-      -- Player is given a finite amount of time to get as many matches as possible
-      game.timer.set(arg[1])
+   if mode == "1 minute" then
+      game.timer.set(60)
 
-   elseif mode == "challenge" then
+   elseif mode == "5 minutes" then
+      game.timer.set(300)
+
+   elseif mode == "15 minutes" then
+      game.timer.set(900)
+
+   elseif mode == "Challenge" then
       -- Game timer resets every time player gets a point
       -- Time given for each point gradually decreases
       game.challenge.active = true
       game.challenge.time = game.challenge.startTime
       game.timer.set(game.challenge.time)
 
-   elseif mode ~= "casual" then
+   elseif mode ~= "Casual" then
       print("ERROR: invalid gamemode! defaulting to casual")
+      return false
    end
+
+   game.mode = mode
 end
 
 function game.stop(endFunc)
@@ -137,6 +143,8 @@ function game.update(dt)
 
       if done then
 	 game.stopping.isStopping = false
+	 highscores.insert(game.mode, score.score)
+	 highscores.writeData()
 	 timers.new(
 	    1,
 	    game.stopping.endFunc

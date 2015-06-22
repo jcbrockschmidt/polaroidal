@@ -35,5 +35,7 @@ function love.load()
    states.menu.load()
    states.game.load() 
 
+   highscores.readData()
+
    load_state("menu")
 end
