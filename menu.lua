@@ -464,7 +464,6 @@ local buttonSet_mt = {}
 buttonSet = {
    dx = 20,
    dy = 20,
-   selector_x = 10,
    btn_h = 0, --> Will be set in menu.load()
    div_h = 4,
    div_w = 150,
@@ -673,7 +672,7 @@ buttonSet = {
 	    love.graphics.setColor(self.selectColor)
 	    love.graphics.print(
 	       ">",
-	       self.selector_x, y
+	       self.buttons[self.curBtn].x-20, y
 	    )
 	 else
 	    love.graphics.setColor(self.regularColor)
