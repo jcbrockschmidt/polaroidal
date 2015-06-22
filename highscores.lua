@@ -14,6 +14,9 @@ function highscores.insert(section, score)
       print("ERROR: cannot record highscores for '"..section.."'")
       return false
    end
+   if score == 0 then
+      return
+   end
    for k, num in ipairs(highscores.data[section]) do
       if score > num then
 	 table.insert(highscores.data[section], k, score)
