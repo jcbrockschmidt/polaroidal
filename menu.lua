@@ -276,13 +276,10 @@ function menu.update(dt)
 
    if menu.highscores.update_bool then
       if menu.highscores.comingIn then
-	 print("COMING IN! ",dt)
 	 local rect = menu.highscores.rect
 	 if predictIncr(rect.x_speed, rect.x_accel) > rect.x_in - rect.x then
-	    print("\taccel")
 	    rect.x_speed = rect.x_speed - rect.x_accel*dt
 	 else
-	    print("\tdecel")
 	    rect.x_speed = rect.x_speed + rect.x_accel*dt
 	 end
 	 rect.x = rect.x + rect.x_speed*dt
