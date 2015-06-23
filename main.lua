@@ -21,6 +21,7 @@ function love.load()
    fonts = {
       oblivious = love.graphics.newFont("fonts/OBLIVIOUSFONT.TTF", 20),
       menu = love.graphics.newFont("fonts/OBLIVIOUSFONT.TTF", 40),
+      highscores = love.graphics.newFont("fonts/OBLIVIOUSFONT.TTF", 40),
       score = love.graphics.newFont("fonts/OBLIVIOUSFONT.TTF", 70),
       dispScore_score = love.graphics.newFont("fonts/OBLIVIOUSFONT.TTF", 120),
       dispScore_msg = love.graphics.newFont("fonts/OBLIVIOUSFONT.TTF", 50),

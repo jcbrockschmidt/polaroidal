@@ -1,22 +1,33 @@
 --DOIT:
 -- * Menu elements continue toward goal until new goal is set.
 --   Elements will probably have to store their own goal.
+-- * Optimize highscore window drawing. Many values that could be
+--   pre-calculated are being calculated each frame.
 
 menu = {}
 
 function menu.load()
-   buttonSet.btn_h = fonts.menu:getHeight(" ") + 6
+   buttonSet.btn_h = fonts.menu:getHeight() + 6
 
    menu.highscores = {
       rect = {
-	 color = {200, 200, 200, 255},
+	 lineColor = {0, 0, 127, 255},
+	 --bodyColor = {200, 200, 200, 255},
+	 bodyColor = {255, 255, 255, 255},
 	 y = 20,
 	 w = 400,
 	 h = love.graphics.getHeight() - 40,
 	 x_out = love.graphics.getWidth(),
 	 x_in = love.graphics.getWidth() - 420,
-	 x_accel = 1500
+	 x_accel = 1500,
+	 x_div = 100,
+	 border = 4,
+	 padding = 20,
+	 spacing = 5,
+	 div_spacing = 60
       },
+      fontColor_1 = {0, 0, 255, 255},
+      fontColor_2 = {200, 200, 255, 255},
       comeIn = function()
 	 menu.highscores.isIn = false
 	 menu.highscores.comingIn = true
@@ -30,7 +41,15 @@ function menu.load()
 	 menu.highscores.comingIn = false
 	 menu.highscores.goingOut = true
 	 menu.shuffleGraphPoints()
-      end
+      end,
+      sectOrder = {
+	 "Challenge",
+	 "1 minute",
+	 "5 minutes",
+	 "15 minutes",
+	 "Casual"
+      },
+      sectNum = 1
    }
 
    menu.buttonSets = {
@@ -176,17 +195,29 @@ function menu.load()
 	    return false
 	 end
       end,
+      left = function(key)
+	 if key == "a" or key == "l" or key == "left" then
+	    return true
+	 else
+	    return false
+	 end
+      end,
+      right = function(key)
+	 if key == "d" or key == "j" or key == "right" then
+	    return true
+	 else
+	    return false
+	 end
+      end,
       enter = function(key)
-	 if key == " " or key == "return" or
-	 key == "d" or key == "l" or key == "right" then
+	 if key == " " or key == "return" then
 	    return true
 	 else
 	    return false
 	 end
       end,
       back = function(key)
-	 if key == "backspace" or key == "escape" or key == "b" or
-	 key == "a" or key == "j" or key == "left" then
+	 if key == "backspace" or key == "escape" or key == "b" then
 	    return true
 	 else
 	    return false
@@ -387,10 +418,16 @@ function menu.keypressed(key)
       end
 
    elseif menu.highscores.isIn or menu.highscores.comingIn then
-      if menu.keyCheck.up(key) then
-	 
-      elseif menu.keyCheck.down(key) then
-	 
+      if menu.keyCheck.left(key) then
+	 menu.highscores.sectNum = menu.highscores.sectNum - 1
+	 if menu.highscores.sectNum < 1 then
+	    menu.highscores.sectNum = #menu.highscores.sectOrder
+	 end
+      elseif menu.keyCheck.right(key) then
+	 menu.highscores.sectNum = menu.highscores.sectNum + 1
+	 if menu.highscores.sectNum > #menu.highscores.sectOrder then
+	    menu.highscores.sectNum = 1
+	 end
       elseif menu.keyCheck.back(key) then
 	 menu.highscores.goOut()
       end
@@ -436,12 +473,58 @@ function menu.draw()
 
    if menu.highscores.draw_bool then
       local rect = menu.highscores.rect
-      love.graphics.setColor(rect.color)
+      love.graphics.setColor(rect.lineColor)
       love.graphics.rectangle(
 	 "fill",
 	 rect.x, rect.y,
 	 rect.w, rect.h
       )
+      love.graphics.setColor(rect.bodyColor)
+      love.graphics.rectangle(
+	 "fill",
+	 rect.x + rect.border, rect.y + rect.border,
+	 rect.w - rect.border*2, rect.h - rect.border*2
+      )
+      local sect = menu.highscores.sectOrder[menu.highscores.sectNum]
+      love.graphics.setFont(fonts.highscores)
+      love.graphics.setColor(menu.highscores.fontColor_1)
+      local y = rect.y + rect.border + rect.padding
+      local x = rect.x + rect.border + rect.padding
+      love.graphics.print(sect, x, y)
+      y = y + fonts.highscores:getHeight() + rect.spacing*2
+      love.graphics.setColor(rect.lineColor)
+      love.graphics.rectangle(
+	 "fill",
+	 x, y,
+	 rect.w - (rect.border+rect.padding)*2, rect.border
+      )
+      y = y + rect.border + rect.spacing + 10
+      if #highscores.data[sect] == 0 then
+	 love.graphics.setColor(menu.highscores.fontColor_2)
+	 love.graphics.print(
+	    "no scores to\ndisplay",
+	    x, y
+	 )
+      else
+	 local x2 = x + rect.x_div
+	 love.graphics.setColor(rect.lineColor)
+	 local h = 0
+	 h = h + fonts.highscores:getHeight()*#highscores.data[sect] +
+	    rect.spacing*(#highscores.data[sect]-1)
+	 love.graphics.rectangle(
+	    "fill",
+	    x2, y,
+	    rect.border, h
+	 )
+	 x2 = x2 + rect.border + rect.div_spacing
+	 for i, score in ipairs(highscores.data[sect]) do
+	    love.graphics.setColor(menu.highscores.fontColor_2)
+	    love.graphics.print(tostring(i) .. ".", x, y)
+	    love.graphics.setColor(menu.highscores.fontColor_1)
+	    love.graphics.print(tostring(score), x2, y)
+	    y = y + fonts.highscores:getHeight() + rect.spacing
+	 end
+      end
    end
 end
 
